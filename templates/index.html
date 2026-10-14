@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>A-Yong Solar Video · 即梦随身工作台</title>
+    <style>
+        /* ================= 极简即梦 App 像素级深空黑沉浸 UI 系统 (零外部依赖，100% 离线秒开) ================= */
+        :root {
+            --jimeng-bg: #000000;
+            --jimeng-card-bg: #141419;
+            --jimeng-border: rgba(255, 255, 255, 0.08);
+            --jimeng-border-focus: #8b5cf6;
+            --jimeng-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+            --jimeng-gradient-btn: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+            --jimeng-text-main: #f8fafc;
+            --jimeng-text-sub: #94a3b8;
+            --jimeng-text-muted: #64748b;
+            --jimeng-status-green: #10b981;
+            --jimeng-status-red: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--jimeng-bg);
+            color: var(--jimeng-text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Segoe UI", Roboto, sans-serif;
+            height: 100vh;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 顶部导航栏 (对标截图: ✕ + 30s·9:16 + 历史成片) */
+        .top-navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            z-index: 30;
+            background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
+            width: 100%;
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        .icon-circle-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+        }
+        .icon-circle-btn:hover {
+            background: rgba(255, 255, 255, 0.22);
+            transform: scale(1.05);
+        }
+
+        .model-selector-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #f1f5f9;
+            cursor: pointer;
+            padding: 6px 16px;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+        }
+        .model-selector-pill:hover {
+            background: rgba(255, 255, 255, 0.16);
+            border-color: rgba(255, 255, 255, 0.18);
+        }
+
+        /* 中央沉浸视口 (成品母带播放视口 + 下载入口) */
+        .viewport-area {
+            flex: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #111116 0%, #000000 100%);
+            padding: 10px 10px 6px 10px;
+        }
+
+        .video-player-box {
+            width: 100%;
+            height: auto;
+            max-width: 460px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #masterVideoPlayer {
+            width: 100%;
+            height: 100%;
+            max-height: calc(100vh - 300px);
+            object-fit: contain;
+            border-radius: 16px;
+            background: #000;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+        }
+
+        /* 独立在播放器下方的成片下载按钮 (杜绝遮挡视频画面) */
+        .download-pill-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(139, 92, 246, 0.16);
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            color: #f1f5f9;
+            padding: 7px 20px;
+            border-radius: 9999px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+            transition: all 0.2s ease;
+            text-decoration: none;
+            margin-top: 10px;
+            flex-shrink: 0;
+            z-index: 10;
+        }
+        .download-pill-btn:hover {
+            background: rgba(139, 92, 246, 0.28);
+            border-color: #a855f7;
+            transform: translateY(-1px);
+        }
+
+        /* 角色头像横向滚动栏 (固定正面图和侧面图) */
+        .character-scroll-section {
+            padding: 8px 16px 8px 16px;
+            display: flex;
+            gap: 14px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            z-index: 20;
+            align-items: center;
+            max-width: 960px;
+            margin: 0 auto;
+            width: 100%;
+            justify-content: center;
+        }
+        .character-scroll-section::-webkit-scrollbar { display: none; }
+
+        .char-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .char-avatar-ring {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            padding: 2px;
+            background: transparent;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .char-avatar-ring.active {
+            background: var(--jimeng-gradient);
+            box-shadow: 0 0 16px rgba(139, 92, 246, 0.6);
+        }
+
+        .char-avatar-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #1c1c24;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            border: 2px solid #000;
+        }
+
+        .char-badge-tag {
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0284c7;
+            color: #fff;
+            font-size: 9px;
+            font-weight: 800;
+            padding: 1px 5px;
+            border-radius: 9999px;
+            white-space: nowrap;
+            border: 1.5px solid #000;
+        }
+
+        .char-name {
+            font-size: 11px;
+            font-weight: 600;
+            color: #94a3b8;
+            max-width: 64px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            text-align: center;
+        }
+        .char-item.active .char-name {
+            color: #fff;
+            font-weight: 700;
+        }
+
+        /* 场景图标签胶囊容器 (即梦同款深空科技蓝) */
+        .scene-pill-container {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            scrollbar-width: none;
+            align-items: center;
+        }
+        .scene-pill-container::-webkit-scrollbar { display: none; }
+
+        .img-badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(14, 165, 233, 0.16);
+            border: 1px solid rgba(56, 189, 248, 0.5);
+            color: #38bdf8;
+            padding: 3px 8px 3px 4px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            backdrop-filter: blur(10px);
+        }
+        .img-badge-pill:hover {
+            background: rgba(14, 165, 233, 0.28);
+            border-color: #38bdf8;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
+        }
+        .pill-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            object-fit: cover;
+            border: 1px solid rgba(56, 189, 248, 0.5);
+        }
+        .pill-close {
+            font-size: 11px;
+            padding: 1px 3px;
+            border-radius: 50%;
+            color: #94a3b8;
+            margin-left: 2px;
+            transition: all 0.15s ease;
+        }
+        .pill-close:hover {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        /* 加号场景图按钮 (即梦同款) */
+        .btn-add-scene {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            color: #38bdf8;
+            padding: 5px 11px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-add-scene:hover {
+            background: rgba(56, 189, 248, 0.18);
+            border-color: #38bdf8;
+            transform: scale(1.03);
+        }
+
+        /* 底部即梦输入卡片 (加宽+高度自适应) */
+        .bottom-console-wrapper {
+            padding: 0 16px calc(14px + env(safe-area-inset-bottom)) 16px;
+            z-index: 20;
+            max-width: 960px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .prompt-card {
+            background: var(--jimeng-card-bg);
+            border: 1px solid var(--jimeng-border);
+            border-radius: 20px;
+            padding: 14px 18px 12px 18px;
+            backdrop-filter: blur(20px);
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+        }
+
+        .prompt-input-container {
+            position: relative;
+            width: 100%;
+            min-height: 80px;
+        }
+
+        .prompt-backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow-y: hidden;
+            pointer-events: none;
+            box-sizing: border-box;
+            background: transparent;
+        }
+
+        .prompt-highlights {
+            width: 100%;
+            min-height: 80px;
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: 15px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: #f1f5f9;
+            padding: 0;
+            margin: 0;
+        }
+
+        .prompt-textarea {
+            position: relative;
+            width: 100%;
+            min-height: 80px;
+            max-height: 380px;
+            background: transparent;
+            border: none;
+            color: transparent;
+            caret-color: #38bdf8;
+            font-size: 15px;
+            line-height: 1.6;
+            outline: none;
+            resize: none;
+            font-family: inherit;
+            overflow-y: auto;
+            box-sizing: border-box;
+            white-space: pre-wrap;
+            word-break: break-word;
+            padding: 0;
+            margin: 0;
+            z-index: 2;
+            transition: height 0.1s ease;
+        }
+        .prompt-textarea::placeholder { color: #64748b; }
+        .prompt-textarea::selection {
+            background: rgba(14, 165, 233, 0.38);
+            color: #ffffff;
+        }
+
+        /* 场景图占位符高亮胶囊 (纯净科技蓝高亮，无多余图标) */
+        .hl-scene-tag {
+            display: inline;
+            color: #38bdf8 !important;
+            background: rgba(14, 165, 233, 0.22);
+            border: 1px solid #38bdf8;
+            border-radius: 4px;
+            padding: 1px 3px;
+            font-weight: 800;
+            font-size: inherit;
+            line-height: inherit;
+            box-shadow: 0 0 8px rgba(56, 189, 248, 0.45);
+        }
+
+        /* 角色@高亮胶囊 (纯净淡紫高亮，无多余图标) */
+        .hl-role-tag {
+            display: inline;
+            color: #c084fc !important;
+            background: rgba(168, 85, 247, 0.18);
+            border: 1px solid #a855f7;
+            border-radius: 4px;
+            padding: 1px 3px;
+            font-weight: 700;
+            font-size: inherit;
+            line-height: inherit;
+        }
+
+        .status-pill-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 11px;
+        }
+
+        .action-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 10px;
+            gap: 8px;
+        }
+
+        .btn-mode-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #22222c;
+            border: 1px solid var(--jimeng-border);
+            padding: 7px 14px;
+            border-radius: 9999px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-mode-pill:hover {
+            background: #2c2c38;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-generate-main {
+            background: #2b2b36;
+            color: #64748b;
+            border: none;
+            padding: 8px 24px;
+            border-radius: 9999px;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: not-allowed;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .btn-generate-main.ready {
+            background: var(--jimeng-gradient-btn);
+            color: #fff;
+            cursor: pointer;
+            box-shadow: 0 2px 16px rgba(168, 85, 247, 0.45);
+        }
+        .btn-generate-main.ready:hover {
+            transform: scale(1.03);
+            box-shadow: 0 4px 22px rgba(168, 85, 247, 0.6);
+        }
+
+        /* 模态对话框 */
+        .drawer-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.88);
+            backdrop-filter: blur(20px);
+            z-index: 100;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        .drawer-modal.active { display: flex; }
+
+        .drawer-sheet {
+            background: #14141a;
+            border: 1px solid var(--jimeng-border);
+            border-top: 1px solid rgba(139, 92, 246, 0.5);
+            border-radius: 24px 24px 0 0;
+            width: 100%;
+            max-width: 600px;
+            padding: 22px;
+            animation: slideUp 0.25s ease;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .confirm-dialog {
+            background: #16161f;
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 480px;
+            padding: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+            margin: auto;
+        }
+
+        .param-option-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .param-pill {
+            flex: 1;
+            background: #1c1c24;
+            border: 1px solid var(--jimeng-border);
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .param-pill.active {
+            background: rgba(139, 92, 246, 0.18);
+            border-color: #8b5cf6;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 顶部导航栏 (极简布局：左清空 + 右历史成片，无冗余标签) -->
+    <header class="top-navbar">
+        <button class="icon-circle-btn" onclick="clearInput()" title="清空输入框与分镜">
+            ✕
+        </button>
+
+        <!-- 🕒 历史成片与任务库按钮 -->
+        <div class="model-selector-pill" onclick="openHistoryDrawer()" style="background: rgba(139, 92, 246, 0.18); border-color: rgba(139, 92, 246, 0.45); padding: 6px 14px; cursor: pointer;" title="查看历史生成成片库">
+            <span style="font-size: 13px; font-weight: 800; color: #c084fc;">🕒 历史成片</span>
+        </div>
+    </header>
+
+    <!-- 浮动实时渲染与轮询进度面板容器 (支持多个并发任务从上到下卡片式排列，绝不互相覆盖) -->
+    <div id="progressCardsContainer" style="position: fixed; top: 68px; right: 24px; display: flex; flex-direction: column; gap: 12px; z-index: 45; pointer-events: none; max-height: calc(100vh - 120px); overflow-y: auto;">
+    </div>
+
+    <!-- 中央沉浸视口 (纯净大屏播放器，无遮挡) -->
+    <main class="viewport-area">
+        <div class="video-player-box">
+            <!-- 30 秒成品母带播放器 (支持原生三点菜单极速下载) -->
+            <video id="masterVideoPlayer" controls playsinline></video>
+        </div>
+    </main>
+
+    <!-- 底部即梦输入卡片与发牌栏 -->
+    <footer class="bottom-console-wrapper">
+        <div style="display: flex; gap: 14px; align-items: flex-end; width: 100%;">
+            <!-- 主角阿勇实体头像 (位于输入框左侧，不占用垂直空间) -->
+            <div class="char-side-box" style="display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; padding-bottom: 6px;">
+                <div class="char-item active" id="charAyong" onclick="selectRole('ayong', '@阿勇')" title="点击@主角出镜" style="cursor: pointer;">
+                    <div class="char-avatar-ring active" id="ringAyong" style="width: 52px; height: 52px;">
+                        <img src="/static/assets/主角_本人业务经理_正面特写.jpg" class="char-avatar-img" alt="主角阿勇">
+                        <span class="char-badge-tag">主角</span>
+                    </div>
+                </div>
+                <span class="char-name" style="font-size: 11px; font-weight: 700; color: #cbd5e1;">阿勇</span>
+            </div>
+
+            <!-- 主提示词与场景卡片 -->
+            <div class="prompt-card" style="flex: 1; min-width: 0;">
+            
+            <!-- 场景图控制栏 (左上角：＋ 场景图 按钮 + 场景图胶囊标签) -->
+            <div class="scene-header-bar" style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
+                <!-- ➕ 场景图加号按钮 (置于输入框左上角，逻辑顺畅统一) -->
+                <button class="btn-add-scene" onclick="triggerSceneUpload()" title="点击插入场景图，自动生成蓝色图片1/图片2标签">
+                    <span style="font-size: 15px; font-weight: 800; line-height: 1;">＋</span>
+                    <span>场景图</span>
+                </button>
+                <input type="file" id="sceneFileInput" accept="image/*" multiple style="display: none;" onchange="handleSceneFilesSelected(event)">
+
+                <!-- 场景图胶囊容器 -->
+                <div id="scenePillContainer" class="scene-pill-container" style="display: none; margin-bottom: 0; padding-bottom: 0; border-bottom: none;"></div>
+            </div>
+
+            <!-- 场景图与角色占位符高亮输入区 (富科技感占位符高亮) -->
+            <div class="prompt-input-container">
+                <div class="prompt-backdrop" id="promptBackdrop">
+                    <div class="prompt-highlights" id="promptHighlights"></div>
+                </div>
+                <textarea 
+                    class="prompt-textarea" 
+                    id="promptInput" 
+                    placeholder="请粘贴豆包分镜或台词，点击上方头像@主角，点击左下角加号插入[图片1]场景..."
+                    oninput="handlePromptInput()"
+                    onscroll="syncScroll()"
+                ></textarea>
+            </div>
+
+            <!-- 底部操作工具栏 (已移除字数与秒数标签，极简呈现) -->
+            <div class="status-pill-row" style="display: flex; justify-content: flex-end; align-items: center; border-top: none; margin-top: 4px; padding-top: 0;">
+                <!-- 右下角发牌主按钮 -->
+                <button class="btn-generate-main" id="btnSubmitMain" onclick="openConfirmDialog()">
+                    <span>生成</span>
+                </button>
+            </div>
+
+        </div>
+        </div>
+    </footer>
+
+    <!-- ================= 模态弹窗系统 ================= -->
+
+    <!-- 1. 视频时长与参数抽屉 -->
+    <div class="drawer-modal" id="paramsDrawer">
+        <div class="drawer-sheet">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <span style="font-size: 16px; font-weight: 800; color: #fff;">⚙️ 成片时长选择</span>
+                <button class="icon-circle-btn" style="width: 28px; height: 28px; font-size: 12px;" onclick="closeParamsDrawer()">✕</button>
+            </div>
+
+            <div style="font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 8px;">成片时长规格：</div>
+            <div class="param-option-row">
+                <div class="param-pill active" id="pillDur30" onclick="selectDuration(30, '¥1.20')">
+                    <div>30 秒</div>
+                    <div style="font-size: 10px; color:#10b981; margin-top:2px;">¥1.20 · 获客黄金标</div>
+                </div>
+                <div class="param-pill" id="pillDur15" onclick="selectDuration(15, '¥0.60')">
+                    <div>15 秒</div>
+                    <div style="font-size: 10px; color:#94a3b8; margin-top:2px;">¥0.60</div>
+                </div>
+                <div class="param-pill" id="pillDur45" onclick="selectDuration(45, '¥1.80')">
+                    <div>45 秒</div>
+                    <div style="font-size: 10px; color:#94a3b8; margin-top:2px;">¥1.80</div>
+                </div>
+            </div>
+
+            <div style="font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 8px;">画幅与清晰度 (固化标准)：</div>
+            <div class="param-option-row">
+                <div class="param-pill active">9:16 (768×1344 竖版高清)</div>
+            </div>
+
+            <button class="btn-mode-pill" style="width: 100%; justify-content: center; padding: 12px; background: var(--jimeng-gradient-btn);" onclick="closeParamsDrawer()">
+                确定选择
+            </button>
+        </div>
+    </div>
+
+    <!-- 2. ★ 算力发牌确认弹窗 (绝对红线安全锁) -->
+    <div class="drawer-modal" id="confirmModal">
+        <div class="confirm-dialog">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <span style="font-size: 16px; font-weight: 800; color: #fff;">⚠️ 算力提交确认 (防抢跑)</span>
+                <button class="icon-circle-btn" style="width: 28px; height: 28px; font-size: 12px;" onclick="closeConfirmDialog()">✕</button>
+            </div>
+            <p style="font-size: 12px; color: var(--jimeng-text-sub); line-height: 1.5; margin-bottom: 12px;">
+                系统物理禁止静默跑算力。请选择出片模式并核验分镜内容，手动确认后执行发牌：
+            </p>
+
+            <!-- 模式选择 -->
+            <div style="font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 6px;">出片发牌模式：</div>
+            <div class="param-option-row" style="margin-bottom: 12px;">
+                <div class="param-pill active" id="pillModeCloud" onclick="selectMode('cloud')">
+                    <div>🚀 AutoDL 云端真实发牌</div>
+                    <div style="font-size: 10px; color:#10b981; margin-top:2px;">minimax_h3 · 真实渲染</div>
+                </div>
+                <div class="param-pill" id="pillModeMock" onclick="selectMode('mock')">
+                    <div>⚡ 本地极速模拟</div>
+                    <div style="font-size: 10px; color:#94a3b8; margin-top:2px;">0成本秒出 · 流程全验</div>
+                </div>
+            </div>
+
+            <div style="background: #101015; border: 1px solid var(--jimeng-border); border-radius: 12px; padding: 12px; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; font-size: 12px; color: #94a3b8; margin-bottom: 6px;">
+                    <span>工作流:</span><span style="color:#c084fc; font-weight:700;" id="modalWorkflowLabel">minimax_h3_zm_u24</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 12px; color: #94a3b8; margin-bottom: 6px;">
+                    <span>目标成片时长:</span><span id="modalDurationSpan">30 秒</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight:700; color:#fff; border-top:1px dashed var(--jimeng-border); padding-top:6px; margin-top:6px;">
+                    <span>预估总算力扣费:</span><span style="color:#10b981;" id="modalCostSpan">¥1.20</span>
+                </div>
+            </div>
+
+            <!-- 分镜拆解核验清单 -->
+            <div id="modalSegmentsList" style="display:none; max-height: 120px; overflow-y: auto; background: #0c0c10; border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 8px; margin-bottom: 14px; font-size: 11px; color: #cbd5e1;">
+            </div>
+            <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 18px; cursor: pointer;">
+                <input type="checkbox" id="confirmCheck" onchange="toggleConfirmBtn()" style="accent-color: #8b5cf6; width: 16px; height: 16px;">
+                <span style="font-size: 12px; font-weight: 600; color: #e2e8f0;">我已核验豆包分镜内容，确认发牌</span>
+            </label>
+            <button class="btn-generate-main ready" id="btnExecuteReal" disabled onclick="executeSubmitReal()" style="width: 100%; justify-content: center; padding: 12px;">
+                🚀 确认提交生成出片
+            </button>
+        </div>
+    </div>
+
+    <!-- 3. 添加新人物角色弹窗 -->
+    <div class="drawer-modal" id="addRoleModal">
+        <div class="confirm-dialog">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <span style="font-size: 16px; font-weight: 800; color: #fff;">👤 添加新出镜人物形象</span>
+                <button class="icon-circle-btn" style="width: 28px; height: 28px; font-size: 12px;" onclick="closeAddRoleModal()">✕</button>
+            </div>
+            <p style="font-size: 12px; color: var(--jimeng-text-sub); line-height: 1.5; margin-bottom: 12px;">
+                上传真实出镜人脸照片（如合伙人、业务主管、客户老板），上传后可一键 @出镜：
+            </p>
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 12px; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 6px;">人物称呼/角色名：</label>
+                <input type="text" id="inputNewRoleName" placeholder="例如：勇哥搭档、生产主管" style="width: 100%; padding: 8px 12px; background: #111116; border: 1px solid var(--jimeng-border); border-radius: 8px; color: #fff; font-size: 13px; outline: none;">
+            </div>
+            <div style="background: #111118; border: 1px dashed rgba(139, 92, 246, 0.4); border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 14px;">
+                <input type="file" id="roleFileInput" accept="image/*" style="display: none;" onchange="handleRolePhotoSelected(event)">
+                <button class="btn-mode-pill" style="margin: 0 auto; padding: 9px 20px; background: var(--jimeng-gradient-btn);" onclick="document.getElementById('roleFileInput').click()">
+                    📷 选择人物清晰面部照片
+                </button>
+                <p id="newRoleFileTip" style="font-size: 11px; color: var(--jimeng-text-muted); margin-top: 8px;">建议竖版单人高清照，无遮挡</p>
+            </div>
+            <button class="btn-generate-main ready" id="btnConfirmAddRole" onclick="submitAddNewRole()" style="width: 100%; justify-content: center; padding: 11px;">
+                保存并加入角色栏
+            </button>
+        </div>
+    </div>
+
+    <!-- 4. 历史成片与任务库抽屉 -->
+    <div class="drawer-modal" id="historyDrawer">
+        <div class="drawer-sheet" style="max-height: 82vh; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 16px; font-weight: 800; color: #fff;">🕒 历史成片与任务库</span>
+                    <span id="historyTotalBadge" style="font-size: 11px; background: rgba(139,92,246,0.25); color:#c084fc; border: 1px solid rgba(139,92,246,0.4); padding: 2px 8px; border-radius: 9999px; font-weight: 700;">0 条</span>
+                </div>
+                <button class="icon-circle-btn" style="width: 28px; height: 28px; font-size: 12px;" onclick="closeHistoryDrawer()">✕</button>
+            </div>
+            <p style="font-size: 12px; color: var(--jimeng-text-sub); line-height: 1.4; margin-bottom: 12px;">
+                云端渲染与本地合成的所有母带和原片均在此沉淀，点击可随时在主屏播放或一键下载：
+            </p>
+            <div id="historyListContainer" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 4px;">
+                <div style="text-align: center; padding: 30px; color: #94a3b8; font-size: 12px;">正在读取历史成片...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 交互驱动脚本 -->
+    <script>
+        let currentDuration = 30;
+        let currentCost = 1.20;
+        let currentCategory = "RESIDENTIAL_CQ";
+        let currentMode = "cloud"; // cloud 或 mock
+        let pollTimer = null;
+
+        // ★ 场景图片列表：[{ id: 1, label: '图片1', url: '/static/...', filename: '...' }]
+        let uploadedSceneImages = [];
+        let pendingRoleFile = null;
+        let currentParsedSegments = [];
+
+        window.addEventListener("DOMContentLoaded", async () => {
+            await loadLatestMasterVideo();
+            // 每次打开或刷新页面，输入区与场景图保持纯净，绝不强行塞入历史老图片
+            uploadedSceneImages = [];
+            currentParsedSegments = [];
+            renderScenePills();
+            syncHighlights();
+            await restoreActiveRenderJobs();
+        });
+
+        // 页面打开或刷新时，自动恢复当前正在运行的任务卡片
+        async function restoreActiveRenderJobs() {
+            try {
+                const res = await fetch("/api/v1/render/active-jobs");
+                if (!res.ok) return;
+                const data = await res.json();
+                const jobs = data.jobs || [];
+                for (const j of jobs) {
+                    startJobPolling(j.job_id);
+                }
+            } catch (e) {
+                console.log("恢复运行中任务失败:", e);
+            }
+        }
+
+        // 自动载入已有场景图
+        async function initExistingSceneAssets() {
+            try {
+                const res = await fetch("/api/v1/storage/assets");
+                const data = await res.json();
+                if (data.scenes && data.scenes.length > 0) {
+                    uploadedSceneImages = data.scenes.map((s, idx) => ({
+                        id: idx + 1,
+                        label: `图片${idx + 1}`,
+                        url: s.local_url,
+                        filename: s.name
+                    }));
+                    renderScenePills();
+                }
+            } catch (e) {
+                console.log("加载预置场景图忽略:", e);
+            }
+        }
+
+        // 1. 加载最新成品母带
+        async function loadLatestMasterVideo() {
+            try {
+                const res = await fetch("/api/v1/render/latest");
+                const data = await res.json();
+                if (data.has_video) {
+                    const videoEl = document.getElementById("masterVideoPlayer");
+                    videoEl.src = data.video_url;
+                    const dlBtn = document.getElementById("btnDownloadMaster");
+                    if (dlBtn) {
+                        dlBtn.href = data.download_url;
+                        dlBtn.download = data.filename;
+                    }
+                }
+            } catch (e) {
+                console.error("加载成片失败", e);
+            }
+        }
+
+        // 2. 业务线切换
+        function toggleBizCategory() {
+            if (currentCategory === "RESIDENTIAL_CQ") {
+                currentCategory = "COMMERCIAL_SC_CQ";
+                document.getElementById("btnBizToggle").innerHTML = "<span>🏭 川渝工商业</span>";
+            } else {
+                currentCategory = "RESIDENTIAL_CQ";
+                document.getElementById("btnBizToggle").innerHTML = "<span>🏡 重庆户用</span>";
+            }
+        }
+
+        // 3. 模式选择 (Cloud / Mock)
+        function selectMode(m) {
+            currentMode = m;
+            document.getElementById("pillModeCloud").classList.toggle("active", m === "cloud");
+            document.getElementById("pillModeMock").classList.toggle("active", m === "mock");
+            document.getElementById("modalWorkflowLabel").innerText = m === "cloud" ? "minimax_h3_zm_u24 (AutoDL云端)" : "本地极速模拟 (0成本秒出)";
+            document.getElementById("modalCostSpan").innerText = m === "cloud" ? `¥${currentCost.toFixed(2)}` : "¥0.00 (免费测试)";
+        }
+
+        // 4. ★ 角色选择与@主角：点击人物头像立即高亮并向输入框精准插入@角色
+        function selectRole(roleType, tag) {
+            document.querySelectorAll(".char-item").forEach(el => el.classList.remove("active"));
+            document.querySelectorAll(".char-avatar-ring").forEach(el => el.classList.remove("active"));
+
+            const targetItem = event.currentTarget;
+            targetItem.classList.add("active");
+            const ring = targetItem.querySelector(".char-avatar-ring");
+            if (ring) ring.classList.add("active");
+
+            insertTextAtCursor(`${tag} `);
+        }
+
+        // 5. ★ 即梦同款点击加号（＋）插入场景图机制
+        function triggerSceneUpload() {
+            document.getElementById("sceneFileInput").click();
+        }
+
+        async function handleSceneFilesSelected(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const fd = new FormData();
+                fd.append("file", file);
+                fd.append("category", "scene");
+
+                try {
+                    const res = await fetch("/api/v1/storage/upload-local", { method: "POST", body: fd });
+                    const data = await res.json();
+                    if (data.success) {
+                        const nextId = uploadedSceneImages.length + 1;
+                        const item = {
+                            id: nextId,
+                            label: `图片${nextId}`,
+                            url: data.local_url,
+                            filename: data.filename
+                        };
+                        uploadedSceneImages.push(item);
+
+                        // 自动在输入框当前光标处插入蓝色 [图片N] 标签
+                        insertTextAtCursor(`[图片${nextId}] `);
+                    }
+                } catch (err) {
+                    console.error("上传场景图失败:", err);
+                    alert("场景图上传失败: " + err);
+                }
+            }
+
+            renderScenePills();
+            handlePromptInput();
+            event.target.value = "";
+        }
+
+        // 6. 渲染即梦同款深空科技蓝胶囊条
+        function renderScenePills() {
+            const container = document.getElementById("scenePillContainer");
+            if (!container) return;
+
+            if (uploadedSceneImages.length === 0) {
+                container.style.display = "none";
+                container.innerHTML = "";
+                return;
+            }
+
+            container.style.display = "flex";
+            container.innerHTML = uploadedSceneImages.map((img, idx) => `
+                <div class="img-badge-pill" onclick="insertTextAtCursor('[${img.label}] ')" title="点击在输入框插入 [${img.label}]">
+                    <img src="${img.url}" class="pill-thumb" alt="${img.label}">
+                    <span>${img.label}</span>
+                    <span class="pill-close" onclick="removeSceneImage(${idx}, event)" title="删除此图">✕</span>
+                </div>
+            `).join("");
+        }
+
+        function removeSceneImage(idx, event) {
+            event.stopPropagation();
+            const target = uploadedSceneImages[idx];
+            const targetLabel = target ? target.label : `图片${idx + 1}`;
+
+            uploadedSceneImages.splice(idx, 1);
+            // 重新编号
+            uploadedSceneImages.forEach((img, i) => {
+                img.id = i + 1;
+                img.label = `图片${i + 1}`;
+            });
+            renderScenePills();
+
+            // ★ 级联清理输入框中对应的 [图片N] 占位符，避免残留死占位
+            const textarea = document.getElementById("promptInput");
+            if (textarea && textarea.value) {
+                // 删除如 [图片1] 或 图片1
+                const reg = new RegExp(`\\[?${targetLabel}\\]?\\s*`, "gi");
+                textarea.value = textarea.value.replace(reg, "");
+                handlePromptInput();
+            }
+        }
+
+        // 7. 在输入框光标位置精确插入文本并聚焦
+        function insertTextAtCursor(textToInsert) {
+            const textarea = document.getElementById("promptInput");
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+
+            textarea.value = text.substring(0, start) + textToInsert + text.substring(end);
+            textarea.focus();
+            textarea.selectionStart = textarea.selectionEnd = start + textToInsert.length;
+            handlePromptInput();
+        }
+
+        // 8. 构造场景图片映射表字典
+        function getImageMap() {
+            const map = {};
+            uploadedSceneImages.forEach(img => {
+                map[img.label] = img.url;
+                map[String(img.id)] = img.url;
+            });
+            return map;
+        }
+
+        // 9. 输入框字符、自适应高度与高亮同步
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+        }
+
+        function renderHighlights(text) {
+            if (!text) return "";
+            let safe = escapeHtml(text);
+            // 1. 匹配 [图片N], 图片N, [Picture N] 等场景占位符，纯净科技蓝高亮 (无多余图标)
+            safe = safe.replace(/(?:\[)?(?:图片|图|Picture|pic)\s*\d+(?:\])?/gi, function(match) {
+                return `<span class="hl-scene-tag">${match}</span>`;
+            });
+            // 2. 匹配 @阿勇 角色占位符，纯净淡紫色高亮 (无多余图标)
+            safe = safe.replace(/@阿勇[^\s]*/g, function(match) {
+                return `<span class="hl-role-tag">${match}</span>`;
+            });
+            // 保留末尾换行空间避免光标高度抖动
+            if (text.endsWith("\n")) {
+                safe += " ";
+            }
+            return safe;
+        }
+
+        function syncHighlights() {
+            const textarea = document.getElementById("promptInput");
+            const highlights = document.getElementById("promptHighlights");
+            if (!textarea || !highlights) return;
+            highlights.innerHTML = renderHighlights(textarea.value);
+            syncScroll();
+        }
+
+        function syncScroll() {
+            const textarea = document.getElementById("promptInput");
+            const backdrop = document.getElementById("promptBackdrop");
+            if (textarea && backdrop) {
+                backdrop.scrollTop = textarea.scrollTop;
+            }
+        }
+
+        function autoResizeTextarea() {
+            const textarea = document.getElementById("promptInput");
+            if (!textarea) return;
+            textarea.style.height = "auto";
+            const newHeight = Math.min(Math.max(textarea.scrollHeight, 80), 380);
+            textarea.style.height = newHeight + "px";
+        }
+
+        function handlePromptInput() {
+            autoResizeTextarea();
+            syncHighlights();
+            const text = document.getElementById("promptInput").value;
+            const pureWords = text.replace(/[，。！？、；：“”‘’（）《》\s\[\]]/g, "").length;
+            const wb = document.getElementById("wordsCountBadge");
+            if (wb) wb.innerText = `${pureWords} 字`;
+
+            const btn = document.getElementById("btnSubmitMain");
+            btn.classList.toggle("ready", pureWords > 5);
+        }
+
+        function clearInput() {
+            if (confirm("是否清空当前输入的台词提示词与场景图引用？")) {
+                const textarea = document.getElementById("promptInput");
+                textarea.value = "";
+                textarea.style.height = "80px";
+                uploadedSceneImages = [];
+                renderScenePills();
+                handlePromptInput();
+            }
+        }
+
+        // 10. 时长选择抽屉
+        function openParamsDrawer() { document.getElementById("paramsDrawer").classList.add("active"); }
+        function closeParamsDrawer() { document.getElementById("paramsDrawer").classList.remove("active"); }
+
+        function selectDuration(dur, costLabel) {
+            currentDuration = dur;
+            currentCost = parseFloat((dur * 0.040).toFixed(2));
+            document.querySelectorAll(".param-pill").forEach(p => p.classList.remove("active"));
+            event.currentTarget.classList.add("active");
+
+            const tb = document.getElementById("labelTopParams");
+            if (tb) tb.innerText = `${dur}s · 9:16`;
+            const db = document.getElementById("durationBadge");
+            if (db) db.innerText = `${dur}.0s`;
+            const mb = document.getElementById("modalDurationSpan");
+            if (mb) mb.innerText = `${dur} 秒`;
+            selectMode(currentMode);
+        }
+
+        // 11. 发牌确认 (打开时实时解析分镜清单与图片插槽)
+        async function openConfirmDialog() {
+            const btn = document.getElementById("btnSubmitMain");
+            if (!btn.classList.contains("ready")) return;
+
+            document.getElementById("confirmCheck").checked = false;
+            document.getElementById("btnExecuteReal").disabled = true;
+            document.getElementById("confirmModal").classList.add("active");
+
+            const promptText = document.getElementById("promptInput").value;
+            const listEl = document.getElementById("modalSegmentsList");
+            listEl.style.display = "block";
+            listEl.innerHTML = "<div style='color:#94a3b8;'>⏳ 正在智能解析各镜头节拍与场景图片...</div>";
+
+            try {
+                const res = await fetch("/api/v1/render/parse-preview", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        prompt: promptText,
+                        duration: currentDuration,
+                        image_map: getImageMap()
+                    })
+                });
+                const data = await res.json();
+                if (data.segments && data.segments.length > 0) {
+                    currentParsedSegments = data.segments;
+                    document.getElementById("modalDurationSpan").innerText = `${data.total_duration} 秒 (共 ${data.segments_count} 镜)`;
+                    document.getElementById("modalCostSpan").innerText = data.estimated_cost;
+                    listEl.innerHTML = data.segments.map(s => `
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; padding-bottom:4px; border-bottom:1px solid rgba(255,255,255,0.05); font-size:12px;">
+                            <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-right:8px;">
+                                <b style="color:#c084fc;">镜${s.id}</b> (${s.time_range || s.duration + 's'}): ${s.dialogue ? s.dialogue.substring(0, 16) + '...' : (s.prompt ? s.prompt.substring(0, 16) + '...' : '')}
+                            </span>
+                            <span style="color:#38bdf8; white-space:nowrap;">
+                                👤阿勇 (${s.role === 'ayong_side' ? '侧身' : '正面'})
+                                ${s.scene_image ? ' · <span style=\"color:#38bdf8; font-weight:700;\">🖼️ ' + (s.scene_label || '场景图') + '</span>' : ' · <span style=\"color:#38bdf8; font-weight:600;\">🎬 纯文字生成动态场景</span>'}
+                            </span>
+                        </div>
+                    `).join("");
+                } else {
+                    currentParsedSegments = [];
+                    listEl.style.display = "none";
+                }
+            } catch (e) {
+                console.error("分镜解析异常", e);
+                currentParsedSegments = [];
+                listEl.style.display = "none";
+            }
+        }
+        function closeConfirmDialog() { document.getElementById("confirmModal").classList.remove("active"); }
+        function toggleConfirmBtn() {
+            const c = document.getElementById("confirmCheck").checked;
+            document.getElementById("btnExecuteReal").disabled = !c;
+        }
+
+        // 12. 执行提交并开启轮询
+        async function executeSubmitReal() {
+            const btn = document.getElementById("btnExecuteReal");
+            btn.innerText = "⏳ 正在下发算力...";
+            btn.disabled = true;
+
+            const promptText = document.getElementById("promptInput").value;
+
+            try {
+                const res = await fetch("/api/v1/render/submit", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        prompt: promptText,
+                        segments: currentParsedSegments.length > 0 ? currentParsedSegments : null,
+                        duration: currentDuration,
+                        mode: currentMode,
+                        confirmed: true,
+                        image_map: getImageMap()
+                    })
+                });
+                const data = await res.json();
+                closeConfirmDialog();
+
+                // ★ 提交任务后自动清空输入框，恢复初始清爽状态
+                const textarea = document.getElementById("promptInput");
+                textarea.value = "";
+                textarea.style.height = "80px";
+                uploadedSceneImages = [];
+                currentParsedSegments = [];
+                renderScenePills();
+                handlePromptInput();
+
+                // 启动即梦风格轮询卡片 (位于右上角)
+                startJobPolling(data.job_id);
+
+            } catch (e) {
+                alert("提交失败：" + e);
+            } finally {
+                btn.innerText = "🚀 确认提交生成出片";
+            }
+        }
+
+        // 13. ★ 多任务并发轮询与独立卡片系统 (同时支持多个任务并排展示，互不干扰)
+        const activeJobPollers = {};
+
+        function startJobPolling(jobId, scriptSnippet) {
+            const container = document.getElementById("progressCardsContainer");
+            if (!container) return;
+
+            // 检查或创建该任务的独立进度卡片
+            let card = document.getElementById(`jobCard_${jobId}`);
+            if (!card) {
+                card = document.createElement("div");
+                card.id = `jobCard_${jobId}`;
+                card.style.cssText = "pointer-events: auto; width: 340px; background: rgba(18, 18, 26, 0.96); border: 1px solid rgba(139, 92, 246, 0.45); border-radius: 16px; padding: 12px 14px; backdrop-filter: blur(24px); box-shadow: 0 12px 36px rgba(0,0,0,0.9); transition: all 0.3s ease;";
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <div style="display: flex; align-items: center; gap: 8px; flex: 1; overflow: hidden;">
+                            <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981; box-shadow: 0 0 10px #10b981; flex-shrink: 0;"></span>
+                            <span id="step_${jobId}" style="font-size: 12px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">任务已提交，准备渲染...</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-left: 8px;">
+                            <span id="percent_${jobId}" style="font-size: 13px; font-weight: 800; color: #c084fc;">5%</span>
+                            <button class="icon-circle-btn" style="width: 24px; height: 24px; font-size: 11px; background: rgba(255,255,255,0.12);" onclick="removeJobCard('${jobId}')" title="收起此任务卡片">✕</button>
+                        </div>
+                    </div>
+                    <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 9999px; overflow: hidden; margin-bottom: 8px;">
+                        <div id="bar_${jobId}" style="width: 5%; height: 100%; background: linear-gradient(90deg, #6366f1, #a855f7); transition: width 0.4s ease;"></div>
+                    </div>
+                    <div id="segs_${jobId}" style="display: flex; gap: 6px; font-size: 11px; color: #94a3b8; overflow-x: auto;">
+                    </div>
+                `;
+                // 新提交的任务插入在最上方
+                container.prepend(card);
+            }
+
+            // 清理已存在的同ID计时器
+            if (activeJobPollers[jobId]) {
+                clearInterval(activeJobPollers[jobId]);
+            }
+
+            // 立即查一次
+            checkJobStatusSingle(jobId);
+
+            // 每 25 秒自动轮询该任务
+            activeJobPollers[jobId] = setInterval(async () => {
+                await checkJobStatusSingle(jobId);
+            }, 25000);
+        }
+
+        function removeJobCard(jobId) {
+            if (activeJobPollers[jobId]) {
+                clearInterval(activeJobPollers[jobId]);
+                delete activeJobPollers[jobId];
+            }
+            const card = document.getElementById(`jobCard_${jobId}`);
+            if (card) {
+                card.style.opacity = "0";
+                card.style.transform = "translateY(-10px)";
+                setTimeout(() => card.remove(), 300);
+            }
+        }
+
+        async function checkJobStatusSingle(jobId) {
+            const stepEl = document.getElementById(`step_${jobId}`);
+            const percentEl = document.getElementById(`percent_${jobId}`);
+            const barEl = document.getElementById(`bar_${jobId}`);
+            const segsEl = document.getElementById(`segs_${jobId}`);
+            if (!stepEl || !percentEl || !barEl || !segsEl) return;
+
+            try {
+                const res = await fetch(`/api/v1/render/status/${jobId}`);
+                if (!res.ok) return;
+                const job = await res.json();
+
+                stepEl.innerText = job.step || "云端渲染中...";
+                percentEl.innerText = `${job.progress}%`;
+                barEl.style.width = `${job.progress}%`;
+
+                const statusMap = {
+                    "RUNNING": "渲染中",
+                    "SUCCESS": "已完成",
+                    "WAITING": "排队中",
+                    "QUEUED": "已下发",
+                    "FAILED": "失败",
+                    "UNKNOWN": "同步中"
+                };
+
+                if (job.segments && job.segments.length > 0) {
+                    segsEl.innerHTML = job.segments.map(s => {
+                        let stText = statusMap[s.status] || s.status;
+                        let color = s.status === "SUCCESS" ? "#10b981" : (s.status === "RUNNING" ? "#fbbf24" : "#94a3b8");
+                        return `<span style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); padding: 2px 7px; border-radius: 4px; color: ${color}; font-size: 11px;">段${s.id} (${s.duration}秒 · ${stText})</span>`;
+                    }).join("");
+                }
+
+                if (job.status === "COMPLETED") {
+                    if (activeJobPollers[jobId]) {
+                        clearInterval(activeJobPollers[jobId]);
+                        delete activeJobPollers[jobId];
+                    }
+
+                    stepEl.innerHTML = "<span style='color:#10b981;'>🎉 成品母带已出片！</span>";
+                    percentEl.innerText = "100%";
+                    barEl.style.width = "100%";
+
+                    // 载入中央播放器播放最新成片
+                    const videoEl = document.getElementById("masterVideoPlayer");
+                    if (videoEl && job.video_url) {
+                        videoEl.src = job.video_url;
+                        videoEl.play().catch(e => console.log("Auto play prevented", e));
+                    }
+
+                    // 成片出炉 3 秒后优雅淡出收起该卡片
+                    setTimeout(() => { removeJobCard(jobId); }, 3000);
+                } else if (job.status === "FAILED") {
+                    if (activeJobPollers[jobId]) {
+                        clearInterval(activeJobPollers[jobId]);
+                        delete activeJobPollers[jobId];
+                    }
+                    stepEl.innerHTML = `<span style='color:#ef4444;'>⚠️ ${job.error || '云端同步中断'}</span>`;
+                }
+            } catch (err) {
+                console.error(`轮询任务 ${jobId} 异常:`, err);
+            }
+        }
+
+        // 14. ★ 历史成片与任务库抽屉引擎
+        function openHistoryDrawer() {
+            document.getElementById("historyDrawer").classList.add("active");
+            loadRenderHistory();
+        }
+        function closeHistoryDrawer() {
+            document.getElementById("historyDrawer").classList.remove("active");
+        }
+
+        async function loadRenderHistory() {
+            const container = document.getElementById("historyListContainer");
+            const badge = document.getElementById("historyTotalBadge");
+            container.innerHTML = `<div style="text-align: center; padding: 24px; color: #94a3b8; font-size: 12px;">⏳ 正在读取历史成片...</div>`;
+
+            try {
+                const res = await fetch("/api/v1/render/history");
+                const data = await res.json();
+                const items = data.items || [];
+                badge.innerText = `${items.length} 条`;
+
+                if (items.length === 0) {
+                    container.innerHTML = `<div style="text-align: center; padding: 30px; color: #94a3b8; font-size: 12px;">暂无历史视频</div>`;
+                    return;
+                }
+
+                container.innerHTML = items.map(item => {
+                    const deleteId = item.project_id || item.filename;
+                    return `
+                    <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                            <div style="font-size: 13px; font-weight: 700; color: #f1f5f9; word-break: break-all; line-height: 1.4;">
+                                <span style="color:#10b981; margin-right:4px;">✨[母带]</span>
+                                ${item.title}
+                            </div>
+                            <span style="font-size: 11px; font-weight: 800; color: #a855f7; flex-shrink: 0;">${item.size_mb} MB</span>
+                        </div>
+                        ${item.script_snippet ? `<div style="font-size: 11px; color: #94a3b8; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">📝 ${item.script_snippet}</div>` : ''}
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #94a3b8;">
+                            <span>🕒 ${item.created_at}</span>
+                            <div style="display: flex; gap: 6px; align-items: center;">
+                                <button onclick="playHistoryVideo('${item.video_url}', '${item.filename}')" style="background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.4); color: #c084fc; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer;">
+                                    ▶️ 载入播放
+                                </button>
+                                <a href="${item.download_url}" download="${item.filename}" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: #cbd5e1; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center;">
+                                    ⬇️ 下载
+                                </a>
+                                <button onclick="deleteHistoryRecord('${deleteId}', event)" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #f87171; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 6px; cursor: pointer;" title="删除此记录及对应视频">
+                                    🗑️ 删除
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                }).join("");
+
+            } catch (err) {
+                container.innerHTML = `<div style="text-align: center; padding: 20px; color: #ef4444; font-size: 12px;">加载失败: ${err}</div>`;
+            }
+        }
+
+        function playHistoryVideo(videoUrl, filename) {
+            const videoEl = document.getElementById("masterVideoPlayer");
+            videoEl.src = videoUrl;
+            videoEl.play().catch(e => console.log("Auto play prevented", e));
+
+            const dlBtn = document.getElementById("btnDownloadMaster");
+            dlBtn.href = videoUrl;
+            dlBtn.download = filename;
+
+            closeHistoryDrawer();
+            closeProgressCard();
+        }
+
+        async function deleteHistoryRecord(recordId, event) {
+            if (event) event.stopPropagation();
+            if (!confirm("确定要删除这条历史记录吗？对应成片文件也将被物理移除！")) return;
+
+            try {
+                const res = await fetch(`/api/v1/render/history/${encodeURIComponent(recordId)}`, {
+                    method: "DELETE"
+                });
+                const data = await res.json();
+                if (data.success) {
+                    await loadRenderHistory();
+                } else {
+                    alert("删除失败: " + (data.detail || "未知异常"));
+                }
+            } catch (err) {
+                alert("请求删除异常: " + err);
+            }
+        }
+
+        // 15. 添加人物形象模态框
+        function openAddRoleModal() { document.getElementById("addRoleModal").classList.add("active"); }
+        function closeAddRoleModal() { document.getElementById("addRoleModal").classList.remove("active"); }
+
+        function handleRolePhotoSelected(e) {
+            const f = e.target.files[0];
+            if (f) {
+                pendingRoleFile = f;
+                document.getElementById("newRoleFileTip").innerText = `已选照片: ${f.name} (${Math.round(f.size/1024)} KB)`;
+                document.getElementById("newRoleFileTip").style.color = "#38bdf8";
+            }
+        }
+
+        async function submitAddNewRole() {
+            const roleName = document.getElementById("inputNewRoleName").value.trim() || "新出镜人";
+            if (!pendingRoleFile) {
+                alert("请先点击上方按钮选择人物面部照片！");
+                return;
+            }
+
+            const fd = new FormData();
+            fd.append("file", pendingRoleFile);
+            fd.append("category", "character");
+
+            try {
+                const res = await fetch("/api/v1/storage/upload-local", { method: "POST", body: fd });
+                const data = await res.json();
+                if (data.success) {
+                    // 动态在横向角色栏追加新人物卡片
+                    const section = document.getElementById("charScrollSection");
+                    const newRoleDiv = document.createElement("div");
+                    newRoleDiv.className = "char-item";
+                    newRoleDiv.onclick = () => selectRole(roleName, `@${roleName}`);
+                    newRoleDiv.innerHTML = `
+                        <div class="char-avatar-ring">
+                            <img src="${data.local_url}" class="char-avatar-img" alt="${roleName}">
+                            <span class="char-badge-tag">${roleName}</span>
+                        </div>
+                        <span class="char-name">${roleName}</span>
+                    `;
+                    // 插在“➕添加人物”前面
+                    section.insertBefore(newRoleDiv, section.lastElementChild);
+                    alert(`✅ 人物【${roleName}】已成功加入角色栏！点击即可指定出镜。`);
+                    closeAddRoleModal();
+                }
+            } catch (err) {
+                alert("保存人物失败: " + err);
+            }
+        }
+    </script>
+</body>
+</html>

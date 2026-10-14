@@ -1,0 +1,36 @@
+# Python 字节码与运行时缓存
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# 虚拟环境
+venv/
+.venv/
+env/
+
+# 环境变量敏感文件 (含真实密钥，严禁上传)
+.env
+
+# 历史生成的成片母带、切片与测试大视频 (近400MB，绝不入Git仓库)
+static/videos/*.mp4
+static/videos/temp/
+static/videos/raw_shots/
+static/videos/rescued/
+temp_inspect/
+
+# 归档非场景海报
+static/assets/archive_*
+
+# 本地 SQLite 运行时生成的数据库与临时文件
+*.db
+*.db-journal
+*.log
+job_err.json
+dashscope_test.json
+
+# 编辑器与系统文件
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
