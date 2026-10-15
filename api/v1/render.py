@@ -656,7 +656,7 @@ def submit_render_job(req: RenderSubmitRequest, db: Session = Depends(get_db)):
     db.commit()
 
     # 2. 调度到 AutoDL 后台 Worker 并返回 job_id
-    job_id = autodl_service.create_render_job(project_id, segments, mode=req.mode)
+    job_id = autodl_service.create_render_job(project_id, segments, mode=req.mode, owner=req.owner or "songyong")
 
     return {
         "success": True,
@@ -669,12 +669,12 @@ def submit_render_job(req: RenderSubmitRequest, db: Session = Depends(get_db)):
         "mode": req.mode
     }
 
-@router.get("/active-jobs", summary="获取当前后台所有正在运行的渲染任务")
-def get_active_render_jobs():
+@router.get("/active-jobs", summary="获取当前后台正在运行的渲染任务")
+def get_active_render_jobs(owner: Optional[str] = None):
     """
-    页面刷新或重新打开时，前端自动调用此接口，恢复所有运行中任务的卡片显示与轮询
+    页面刷新或重新打开时，前端自动调用此接口，恢复当前成员运行中任务的卡片显示与轮询
     """
-    return {"jobs": autodl_service.get_active_jobs()}
+    return {"jobs": autodl_service.get_active_jobs(owner=owner)}
 
 @router.get("/status/{job_id}", summary="★ 轮询任务实时进度与成片状态")
 def query_render_status(job_id: str):

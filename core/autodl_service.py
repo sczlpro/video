@@ -190,7 +190,7 @@ class AutoDLService:
                     }
 
     # ----------------- 异步渲染任务调度中心 -----------------
-    def create_render_job(self, project_id: str, segments: List[dict], mode: str = "cloud") -> str:
+    def create_render_job(self, project_id: str, segments: List[dict], mode: str = "cloud", owner: str = "songyong") -> str:
         """初始化一个渲染任务批次，并在后台线程启动监控"""
         job_id = f"job-{uuid.uuid4().hex[:12]}"
         now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -201,6 +201,7 @@ class AutoDLService:
         job_info = {
             "job_id": job_id,
             "project_id": project_id,
+            "owner": owner,
             "status": "QUEUED",
             "progress": 5,
             "mode": mode,
@@ -239,15 +240,19 @@ class AutoDLService:
         with self._lock:
             return self.jobs.get(job_id)
 
-    def get_active_jobs(self) -> List[dict]:
-        """获取所有仍在运行或等待中的活跃渲染任务（供页面刷新后自动无缝恢复卡片轮询）"""
+    def get_active_jobs(self, owner: Optional[str] = None) -> List[dict]:
+        """获取活跃渲染任务，支持按席位隔离或返回全部"""
         with self._lock:
             active = []
             for jid, info in self.jobs.items():
                 if info.get("status") in ("QUEUED", "RUNNING"):
+                    job_owner = info.get("owner", "songyong")
+                    if owner and owner != "all" and job_owner != owner:
+                        continue
                     active.append({
                         "job_id": jid,
                         "project_id": info.get("project_id"),
+                        "owner": job_owner,
                         "status": info.get("status"),
                         "progress": info.get("progress"),
                         "step": info.get("step"),

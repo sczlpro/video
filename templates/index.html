@@ -608,19 +608,15 @@
         </div>
     </header>
 
-    <!-- 浮动实时渲染与轮询进度面板容器 (支持多个并发任务从上到下卡片式排列，绝不互相覆盖) -->
-    <div id="progressCardsContainer" style="position: fixed; top: 68px; right: 24px; display: flex; flex-direction: column; gap: 12px; z-index: 45; pointer-events: none; max-height: calc(100vh - 120px); overflow-y: auto;">
-    </div>
-
     <!-- 中央沉浸视口 (未出片时若有进行中任务展示动态渲染占位，出片后播放母带，无任务时呈现标准16:9剧场) -->
     <main class="viewport-area">
         <div class="video-player-box">
-            <!-- 正在渲染中的动态占位卡片 (杜绝用老历史视频占位) -->
-            <div id="renderingPlaceholder" style="display: none; width: 100%; aspect-ratio: 9/16; max-height: calc(100vh - 300px); background: #0a0a10; border: 1.5px dashed rgba(139, 92, 246, 0.45); border-radius: 16px; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.8);">
-                <div style="width: 56px; height: 56px; border-radius: 50%; border: 3px solid rgba(139,92,246,0.2); border-top-color: #a855f7; animation: spin 1s linear infinite; margin-bottom: 16px;"></div>
-                <div id="placeholderStepText" style="font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 6px;">云端正在调度算力渲染中...</div>
-                <div id="placeholderPercentText" style="font-size: 20px; font-weight: 900; color: #c084fc; margin-bottom: 12px;">25%</div>
-                <div id="placeholderSegsText" style="font-size: 11px; color: #94a3b8; max-width: 240px; line-height: 1.4;"></div>
+            <!-- 正在渲染中的动态占位卡片 (纯净置于16:9框内，无多余顶部悬浮卡片打扰) -->
+            <div id="renderingPlaceholder" style="display: none; width: 100%; height: 100%; background: #0a0a10; border-radius: 16px; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; text-align: center;">
+                <div style="width: 44px; height: 44px; border-radius: 50%; border: 3px solid rgba(139,92,246,0.2); border-top-color: #a855f7; animation: spin 1s linear infinite; margin-bottom: 12px;"></div>
+                <div id="placeholderStepText" style="font-size: 13px; font-weight: 800; color: #fff; margin-bottom: 6px;">云端正在调度算力渲染中...</div>
+                <div id="placeholderPercentText" style="font-size: 18px; font-weight: 900; color: #c084fc; margin-bottom: 8px;">25%</div>
+                <div id="placeholderSegsText" style="font-size: 11px; color: #94a3b8; max-width: 280px; line-height: 1.4;"></div>
             </div>
 
             <!-- 30 秒成品母带播放器 -->
@@ -977,10 +973,11 @@
             } catch(e) {}
         }
 
-        // 页面打开或刷新时，自动恢复当前正在运行的任务卡片
+        // 页面打开或刷新时，自动恢复当前席位正在运行的任务
         async function restoreActiveRenderJobs() {
             try {
-                const res = await fetch("/api/v1/render/active-jobs");
+                const owner = currentMember ? currentMember.username : "songyong";
+                const res = await fetch(`/api/v1/render/active-jobs?owner=${owner}`);
                 if (!res.ok) return;
                 const data = await res.json();
                 const jobs = data.jobs || [];
@@ -1819,34 +1816,6 @@
                 placeholder.style.display = "flex";
             }
 
-            const container = document.getElementById("progressCardsContainer");
-            if (!container) return;
-
-            let card = document.getElementById(`jobCard_${jobId}`);
-            if (!card) {
-                card = document.createElement("div");
-                card.id = `jobCard_${jobId}`;
-                card.style.cssText = "pointer-events: auto; width: 340px; background: rgba(18, 18, 26, 0.96); border: 1px solid rgba(139, 92, 246, 0.45); border-radius: 16px; padding: 12px 14px; backdrop-filter: blur(24px); box-shadow: 0 12px 36px rgba(0,0,0,0.9); transition: all 0.3s ease;";
-                card.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                        <div style="display: flex; align-items: center; gap: 8px; flex: 1; overflow: hidden;">
-                            <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981; box-shadow: 0 0 10px #10b981; flex-shrink: 0;"></span>
-                            <span id="step_${jobId}" style="font-size: 12px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">任务已提交，准备渲染...</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px; margin-left: 8px;">
-                            <span id="percent_${jobId}" style="font-size: 13px; font-weight: 800; color: #c084fc;">5%</span>
-                            <button class="icon-circle-btn" style="width: 24px; height: 24px; font-size: 11px; background: rgba(255,255,255,0.12);" onclick="removeJobCard('${jobId}')" title="收起此任务卡片">✕</button>
-                        </div>
-                    </div>
-                    <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 9999px; overflow: hidden; margin-bottom: 8px;">
-                        <div id="bar_${jobId}" style="width: 5%; height: 100%; background: linear-gradient(90deg, #6366f1, #a855f7); transition: width 0.4s ease;"></div>
-                    </div>
-                    <div id="segs_${jobId}" style="display: flex; gap: 6px; font-size: 11px; color: #94a3b8; overflow-x: auto;">
-                    </div>
-                `;
-                container.prepend(card);
-            }
-
             if (activeJobPollers[jobId] && activeJobPollers[jobId].timer) {
                 clearInterval(activeJobPollers[jobId].timer);
             }
@@ -1860,7 +1829,7 @@
 
             activeJobPollers[jobId].timer = setInterval(async () => {
                 await checkJobStatusSingle(jobId);
-            }, 25000);
+            }, 5000); // 优化为5秒高频响应，实时感知渲染步长变化
 
             updateTopMenuBadges();
         }
@@ -1871,23 +1840,12 @@
                 delete activeJobPollers[jobId];
                 updateTopMenuBadges();
             }
-            const card = document.getElementById(`jobCard_${jobId}`);
-            if (card) {
-                card.style.opacity = "0";
-                card.style.transform = "translateY(-10px)";
-                setTimeout(() => card.remove(), 300);
-            }
             if (Object.keys(activeJobPollers).length === 0) {
                 loadLatestMasterVideo();
             }
         }
 
         async function checkJobStatusSingle(jobId) {
-            const stepEl = document.getElementById(`step_${jobId}`);
-            const percentEl = document.getElementById(`percent_${jobId}`);
-            const barEl = document.getElementById(`bar_${jobId}`);
-            const segsEl = document.getElementById(`segs_${jobId}`);
-
             try {
                 const res = await fetch(`/api/v1/render/status/${jobId}`);
                 if (!res.ok) return;
@@ -1897,19 +1855,12 @@
                     activeJobPollers[jobId].lastJob = job;
                 }
 
-                // 同步更新主屏中央的渲染中占位状态
+                // 实时更新主屏中央 16:9 剧场内的渲染动态占位
                 const pStep = document.getElementById("placeholderStepText");
                 const pPercent = document.getElementById("placeholderPercentText");
                 const pSegs = document.getElementById("placeholderSegsText");
                 if (pStep) pStep.innerText = job.step || "云端渲染中...";
                 if (pPercent) pPercent.innerText = `${job.progress}%`;
-                if (pSegs && job.segments) {
-                    pSegs.innerText = `共 ${job.segments.length} 段分镜正在云端并行渲染`;
-                }
-
-                if (stepEl) stepEl.innerText = job.step || "云端渲染中...";
-                if (percentEl) percentEl.innerText = `${job.progress}%`;
-                if (barEl) barEl.style.width = `${job.progress}%`;
 
                 const statusMap = {
                     "RUNNING": "渲染中",
@@ -1920,12 +1871,18 @@
                     "UNKNOWN": "同步中"
                 };
 
-                if (segsEl && job.segments && job.segments.length > 0) {
-                    segsEl.innerHTML = job.segments.map(s => {
+                if (pSegs && job.segments && job.segments.length > 0) {
+                    pSegs.innerHTML = job.segments.map(s => {
                         let stText = statusMap[s.status] || s.status;
                         let color = s.status === "SUCCESS" ? "#10b981" : (s.status === "RUNNING" ? "#fbbf24" : "#94a3b8");
-                        return `<span style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); padding: 2px 7px; border-radius: 4px; color: ${color}; font-size: 11px;">段${s.id} (${s.duration}秒 · ${stText})</span>`;
+                        return `<span style="display:inline-block; margin:2px 4px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); padding:1px 6px; border-radius:4px; color:${color}; font-size:10px;">镜${s.id} (${s.duration}s·${stText})</span>`;
                     }).join("");
+                }
+
+                // 如果此时右上角正在进行任务抽屉打开着，实时刷新抽屉
+                const drawer = document.getElementById("activeTasksDrawer");
+                if (drawer && drawer.classList.contains("active")) {
+                    renderActiveTasksGrid();
                 }
 
                 if (job.status === "COMPLETED") {
@@ -1935,10 +1892,6 @@
                         updateTopMenuBadges();
                     }
 
-                    if (stepEl) stepEl.innerHTML = "<span style='color:#10b981;'>🎉 成品母带已出片！</span>";
-                    if (percentEl) percentEl.innerText = "100%";
-                    if (barEl) barEl.style.width = "100%";
-
                     // 隐藏中央占位，无缝切回播放器亮屏起播最新成片
                     const videoEl = document.getElementById("masterVideoPlayer");
                     const placeholder = document.getElementById("renderingPlaceholder");
@@ -1946,18 +1899,16 @@
                     if (videoEl && job.video_url) {
                         videoEl.style.display = "block";
                         videoEl.src = job.video_url;
-                        videoEl.style.aspectRatio = "9/16";
                         videoEl.play().catch(e => console.log("Auto play prevented", e));
                     }
-
-                    setTimeout(() => { removeJobCard(jobId); }, 3000);
+                    syncHistoryTotalCount();
                 } else if (job.status === "FAILED") {
                     if (activeJobPollers[jobId]) {
                         clearInterval(activeJobPollers[jobId].timer);
                         delete activeJobPollers[jobId];
                         updateTopMenuBadges();
                     }
-                    if (stepEl) stepEl.innerHTML = `<span style='color:#ef4444;'>⚠️ ${job.error || '云端同步中断'}</span>`;
+                    if (pStep) pStep.innerHTML = `<span style='color:#ef4444;'>⚠️ ${job.error || '云端同步中断'}</span>`;
                 }
             } catch (err) {
                 console.error(`轮询任务 ${jobId} 异常:`, err);
