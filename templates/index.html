@@ -827,14 +827,17 @@
             <!-- 1. 正面照 -->
             <div style="background: #111118; border: 1px dashed rgba(139, 92, 246, 0.4); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <img id="previewRoleFront" src="/static/assets/主角_本人业务经理_正面特写.jpg" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 1.5px solid #a855f7;">
+                    <div id="previewBoxFront" style="width: 42px; height: 42px; border-radius: 50%; border: 1.5px solid #a855f7; display: flex; align-items: center; justify-content: center; background: #0c0c12; overflow: hidden;">
+                        <img id="previewRoleFront" src="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                        <span id="previewEmptyFront" style="font-size: 18px; color: #a855f7;">＋</span>
+                    </div>
                     <div>
                         <div style="font-size: 12px; font-weight: 700; color: #f1f5f9;">正面高清特写 (必传)</div>
                         <div style="font-size: 10px; color: #94a3b8;">平视明亮，背景干净</div>
                     </div>
                 </div>
                 <button onclick="document.getElementById('inputRoleFront').click()" style="background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.45); color: #c084fc; font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer;">
-                    更换正面照
+                    上传/更换正面照
                 </button>
                 <input type="file" id="inputRoleFront" accept="image/*" style="display: none;" onchange="handleUploadCustomRole(event, 'front')">
             </div>
@@ -842,14 +845,17 @@
             <!-- 2. 45°侧身照 -->
             <div style="background: #111118; border: 1px dashed rgba(139, 92, 246, 0.4); border-radius: 12px; padding: 12px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <img id="previewRoleSide" src="/static/assets/主角_本人业务经理_45度侧身.jpg" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 1.5px solid #38bdf8;">
+                    <div id="previewBoxSide" style="width: 42px; height: 42px; border-radius: 50%; border: 1.5px solid #38bdf8; display: flex; align-items: center; justify-content: center; background: #0c0c12; overflow: hidden;">
+                        <img id="previewRoleSide" src="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                        <span id="previewEmptySide" style="font-size: 18px; color: #38bdf8;">＋</span>
+                    </div>
                     <div>
                         <div style="font-size: 12px; font-weight: 700; color: #f1f5f9;">45° 侧身照 (选传)</div>
                         <div style="font-size: 10px; color: #94a3b8;">用于侧向运镜与手势</div>
                     </div>
                 </div>
                 <button onclick="document.getElementById('inputRoleSide').click()" style="background: rgba(14, 165, 233, 0.2); border: 1px solid rgba(56, 189, 248, 0.45); color: #38bdf8; font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer;">
-                    更换侧身照
+                    上传/更换侧身照
                 </button>
                 <input type="file" id="inputRoleSide" accept="image/*" style="display: none;" onchange="handleUploadCustomRole(event, 'side')">
             </div>
@@ -1195,27 +1201,30 @@
             }
         }
 
-        // 4. ★ 纯净主角管理体系 (每个成员各自独立，保存在数据库和本地)
+        // 4. ★ 纯净主角管理体系 (默认完全为空白加号，任何人首次使用都必须自己上传)
         let mainRoleData = {
-            hasRole: true,
-            frontUrl: "/static/assets/主角_本人业务经理_正面特写.jpg",
-            sideUrl: "/static/assets/主角_本人业务经理_45度侧身.jpg"
+            hasRole: false,
+            frontUrl: "",
+            sideUrl: ""
         };
 
-        // 从本地存储读取当前成员是否自定义过主角形象
+        // 从本地存储或成员信息中读取主角形象，无设置时严格为空白加号
         function initRoleState() {
-            const memberKey = `role_${currentMember ? currentMember.username : 'songyong'}`;
+            if (!currentMember) {
+                mainRoleData = { hasRole: false, frontUrl: "", sideUrl: "" };
+                renderCharacterToolbar();
+                return;
+            }
+            const memberKey = `role_${currentMember.username}`;
             const saved = localStorage.getItem(memberKey);
             if (saved) {
                 try {
                     mainRoleData = JSON.parse(saved);
-                } catch(e) {}
-            } else if (currentMember && currentMember.username !== "songyong") {
-                mainRoleData = {
-                    hasRole: false,
-                    frontUrl: "",
-                    sideUrl: ""
-                };
+                } catch(e) {
+                    mainRoleData = { hasRole: false, frontUrl: "", sideUrl: "" };
+                }
+            } else {
+                mainRoleData = { hasRole: false, frontUrl: "", sideUrl: "" };
             }
             renderCharacterToolbar();
         }
@@ -1260,8 +1269,28 @@
 
         // 打开/关闭主角形象弹窗
         function openAddRoleModal() {
-            document.getElementById("previewRoleFront").src = mainRoleData.frontUrl || "";
-            document.getElementById("previewRoleSide").src = mainRoleData.sideUrl || "";
+            const imgF = document.getElementById("previewRoleFront");
+            const emptyF = document.getElementById("previewEmptyFront");
+            if (mainRoleData.frontUrl) {
+                imgF.src = mainRoleData.frontUrl;
+                imgF.style.display = "block";
+                emptyF.style.display = "none";
+            } else {
+                imgF.style.display = "none";
+                emptyF.style.display = "block";
+            }
+
+            const imgS = document.getElementById("previewRoleSide");
+            const emptyS = document.getElementById("previewEmptySide");
+            if (mainRoleData.sideUrl) {
+                imgS.src = mainRoleData.sideUrl;
+                imgS.style.display = "block";
+                emptyS.style.display = "none";
+            } else {
+                imgS.style.display = "none";
+                emptyS.style.display = "block";
+            }
+
             document.getElementById("addRoleModal").classList.add("active");
         }
         function closeAddRoleModal() {

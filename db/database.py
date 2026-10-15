@@ -32,13 +32,13 @@ def init_db():
     from .models import User
     Base.metadata.create_all(bind=engine)
 
-    # 预置三位成员白名单 (默认密码 88888888，已哈希加密，支持个人随时修改)
+    # 预置三位成员白名单 (默认密码 88888888，已哈希加密，初始角色全部为空白加号)
     db = SessionLocal()
     default_pwd_hash = hashlib.sha256("88888888".encode()).hexdigest()
     members = [
-        {"username": "songyong", "name": "宋勇", "front": "/static/assets/主角_本人业务经理_正面特写.jpg", "side": "/static/assets/主角_本人业务经理_45度侧身.jpg"},
-        {"username": "wufengcheng", "name": "吴封成", "front": None, "side": None},
-        {"username": "yuanyuan", "name": "源源", "front": None, "side": None}
+        {"username": "songyong", "name": "宋勇"},
+        {"username": "wufengcheng", "name": "吴封成"},
+        {"username": "yuanyuan", "name": "源源"}
     ]
     for m in members:
         u = db.query(User).filter(User.username == m["username"]).first()
@@ -47,8 +47,8 @@ def init_db():
                 username=m["username"],
                 name=m["name"],
                 password_hash=default_pwd_hash,
-                role_front_url=m["front"],
-                role_side_url=m["side"]
+                role_front_url=None,
+                role_side_url=None
             )
             db.add(u)
     db.commit()
