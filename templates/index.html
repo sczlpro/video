@@ -92,7 +92,7 @@
             border-color: rgba(255, 255, 255, 0.18);
         }
 
-        /* 中央沉浸视口 (成品母带播放视口 + 下载入口) */
+        /* 中央沉浸视口 (未播放或空闲时呈现经典16:9横屏剧场质感，载入竖屏母带时自适应贴合) */
         .viewport-area {
             flex: 1;
             position: relative;
@@ -101,14 +101,15 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            background: radial-gradient(circle at center, #111116 0%, #000000 100%);
-            padding: 10px 10px 6px 10px;
+            background: transparent;
+            padding: 8px 12px;
+            min-height: 200px;
         }
 
         .video-player-box {
             width: 100%;
             height: auto;
-            max-width: 460px;
+            max-width: 480px;
             position: relative;
             display: flex;
             flex-direction: column;
@@ -118,12 +119,15 @@
 
         #masterVideoPlayer {
             width: 100%;
-            height: 100%;
-            max-height: calc(100vh - 300px);
+            height: auto;
+            aspect-ratio: 16/9;
+            max-height: calc(100vh - 330px);
             object-fit: contain;
-            border-radius: 16px;
-            background: #000;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+            border-radius: 14px;
+            background: #09090d;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            transition: aspect-ratio 0.3s ease;
         }
 
         /* 独立在播放器下方的成片下载按钮 (杜绝遮挡视频画面) */
@@ -573,44 +577,45 @@
 
     <!-- 底部即梦输入卡片与发牌栏 -->
     <footer class="bottom-console-wrapper">
-        <!-- 主角阿勇实体头像与添加角色栏 (置于输入框上方中央，左右完全不侵占宽度，手机端100%协调) -->
-        <div class="char-top-bar" style="display: flex; align-items: center; justify-content: center; gap: 18px; margin-bottom: 8px;">
-            <div class="char-item active" id="charAyong" onclick="selectRole('ayong', '@阿勇')" title="点击在输入框@主角出镜" style="display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer;">
-                <div class="char-avatar-ring active" id="ringAyong" style="width: 48px; height: 48px;">
-                    <img src="/static/assets/主角_本人业务经理_正面特写.jpg" class="char-avatar-img" alt="主角阿勇">
-                    <span class="char-badge-tag">主角</span>
+        <!-- 顶部操作栏 (并排整合：主角头像 + 45°侧身机位 + ＋场景图按钮 + 场景胶囊条，完全移出输入框) -->
+        <div class="input-top-toolbar" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; width: 100%;">
+            <!-- 角色机位区 -->
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="char-item active" id="charAyong" onclick="selectRole('ayong', '@阿勇')" title="点击在输入框@主角出镜" style="display: flex; align-items: center; gap: 5px; cursor: pointer; background: rgba(255,255,255,0.06); padding: 3px 8px 3px 3px; border-radius: 9999px; border: 1px solid rgba(255,255,255,0.08);">
+                    <div class="char-avatar-ring active" id="ringAyong" style="width: 28px; height: 28px; border-radius: 50%;">
+                        <img src="/static/assets/主角_本人业务经理_正面特写.jpg" class="char-avatar-img" alt="主角阿勇">
+                    </div>
+                    <span class="char-name" style="font-size: 11px; font-weight: 700; color: #f1f5f9;">@阿勇正面</span>
                 </div>
-                <span class="char-name" style="font-size: 11px; font-weight: 700; color: #f1f5f9;">阿勇</span>
+
+                <div class="char-item" onclick="selectRole('ayong_side', '@阿勇侧面')" title="点击在输入框插入@阿勇侧面机位" style="display: flex; align-items: center; gap: 5px; cursor: pointer; background: rgba(255,255,255,0.04); padding: 3px 8px 3px 3px; border-radius: 9999px; border: 1px solid rgba(255,255,255,0.06);">
+                    <div class="char-avatar-ring" style="width: 28px; height: 28px; border-radius: 50%;">
+                        <img src="/static/assets/主角_本人业务经理_45度侧身.jpg" class="char-avatar-img" alt="阿勇侧面">
+                    </div>
+                    <span class="char-name" style="font-size: 11px; font-weight: 600; color: #94a3b8;">@阿勇侧面</span>
+                </div>
             </div>
 
-            <!-- 侧身出镜快捷按钮 -->
-            <div class="char-item" onclick="selectRole('ayong_side', '@阿勇侧面')" title="点击在输入框插入@阿勇侧面机位" style="display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer;">
-                <div class="char-avatar-ring" style="width: 48px; height: 48px;">
-                    <img src="/static/assets/主角_本人业务经理_45度侧身.jpg" class="char-avatar-img" alt="阿勇侧面">
-                </div>
-                <span class="char-name" style="font-size: 11px; font-weight: 600; color: #94a3b8;">45°侧身</span>
+            <!-- 场景图上传入口与胶囊栏 (彻底移到输入框上方) -->
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                <!-- ➕ 场景图加号按钮 -->
+                <button class="btn-add-scene" onclick="triggerSceneUpload()" title="点击插入场景图，自动生成蓝色图片1/图片2标签" style="background: rgba(14, 165, 233, 0.15); border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">
+                    <span style="font-size: 14px; font-weight: 800; line-height: 1;">＋</span>
+                    <span>场景图</span>
+                </button>
+                <input type="file" id="sceneFileInput" accept="image/*" multiple style="display: none;" onchange="handleSceneFilesSelected(event)">
+
+                <!-- 场景图胶囊容器 -->
+                <div id="scenePillContainer" class="scene-pill-container" style="display: none; margin-bottom: 0; padding-bottom: 0; border-bottom: none;"></div>
             </div>
         </div>
 
-        <!-- 主提示词与场景卡片 (宽度100%铺满容器，手机端居中大气) -->
+        <!-- 主提示词卡片 (纯净输入框，杜绝混杂加号) -->
         <div class="prompt-card" style="width: 100%;">
             
-            <!-- 场景图控制栏 (左上角：＋ 场景图 按钮 + 场景图胶囊标签 + 右侧全屏展开按钮) -->
-            <div class="scene-header-bar" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
-                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1;">
-                    <!-- ➕ 场景图加号按钮 (置于输入框左上角，逻辑顺畅统一) -->
-                    <button class="btn-add-scene" onclick="triggerSceneUpload()" title="点击插入场景图，自动生成蓝色图片1/图片2标签">
-                        <span style="font-size: 15px; font-weight: 800; line-height: 1;">＋</span>
-                        <span>场景图</span>
-                    </button>
-                    <input type="file" id="sceneFileInput" accept="image/*" multiple style="display: none;" onchange="handleSceneFilesSelected(event)">
-
-                    <!-- 场景图胶囊容器 -->
-                    <div id="scenePillContainer" class="scene-pill-container" style="display: none; margin-bottom: 0; padding-bottom: 0; border-bottom: none;"></div>
-                </div>
-
-                <!-- 右上角全屏/大窗口查看提示词按钮 (长文案时自适应出现) -->
-                <button id="btnExpandPrompt" onclick="openFullscreenPromptModal()" style="display: none; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #c084fc; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; cursor: pointer;" title="全屏查看与编辑长提示词">
+            <!-- 提示词工具条 (右上角全屏展开) -->
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 4px;">
+                <button id="btnExpandPrompt" onclick="openFullscreenPromptModal()" style="display: none; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #c084fc; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 6px; cursor: pointer;" title="全屏查看与编辑长提示词">
                     ⛶ 全屏查看
                 </button>
             </div>
@@ -623,15 +628,14 @@
                 <textarea 
                     class="prompt-textarea" 
                     id="promptInput" 
-                    placeholder="请粘贴豆包分镜或台词，点击上方头像@主角，点击左下角加号插入[图片1]场景..."
+                    placeholder="请粘贴豆包分镜或台词，点击上方头像@主角，点击上方[＋场景图]插入图片..."
                     oninput="handlePromptInput()"
                     onscroll="syncScroll()"
                 ></textarea>
             </div>
 
-            <!-- 底部操作工具栏 (已移除字数与秒数标签，极简呈现) -->
+            <!-- 底部操作工具栏 (右下角核心发牌大按钮) -->
             <div class="status-pill-row" style="display: flex; justify-content: flex-end; align-items: center; border-top: none; margin-top: 4px; padding-top: 0;">
-                <!-- 右下角发牌主按钮 -->
                 <button class="btn-generate-main" id="btnSubmitMain" onclick="openConfirmDialog()">
                     <span>生成</span>
                 </button>
@@ -878,6 +882,9 @@
                 if (data.has_video) {
                     const videoEl = document.getElementById("masterVideoPlayer");
                     videoEl.src = data.video_url;
+                    // 载入真实竖屏视频后，自动调整为自适应比例，避免强制拉伸
+                    videoEl.style.aspectRatio = "9/16";
+                    videoEl.style.maxHeight = "calc(100vh - 290px)";
                     const dlBtn = document.getElementById("btnDownloadMaster");
                     if (dlBtn) {
                         dlBtn.href = data.download_url;
