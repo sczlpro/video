@@ -608,29 +608,17 @@
 
     <!-- 底部即梦输入卡片与发牌栏 -->
     <footer class="bottom-console-wrapper">
-        <!-- 顶部操作栏 (并排整合：主角头像 + 45°侧身机位 + ＋场景图按钮 + 场景胶囊条，完全移出输入框) -->
-        <div class="input-top-toolbar" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; width: 100%;">
-            <!-- 角色机位区 -->
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <div class="char-item active" id="charAyong" onclick="selectRole('ayong', '@阿勇')" title="点击在输入框@主角出镜" style="display: flex; align-items: center; gap: 5px; cursor: pointer; background: rgba(255,255,255,0.06); padding: 3px 8px 3px 3px; border-radius: 9999px; border: 1px solid rgba(255,255,255,0.08);">
-                    <div class="char-avatar-ring active" id="ringAyong" style="width: 28px; height: 28px; border-radius: 50%;">
-                        <img src="/static/assets/主角_本人业务经理_正面特写.jpg" class="char-avatar-img" alt="主角阿勇">
-                    </div>
-                    <span class="char-name" style="font-size: 11px; font-weight: 700; color: #f1f5f9;">@阿勇正面</span>
-                </div>
-
-                <div class="char-item" onclick="selectRole('ayong_side', '@阿勇侧面')" title="点击在输入框插入@阿勇侧面机位" style="display: flex; align-items: center; gap: 5px; cursor: pointer; background: rgba(255,255,255,0.04); padding: 3px 8px 3px 3px; border-radius: 9999px; border: 1px solid rgba(255,255,255,0.06);">
-                    <div class="char-avatar-ring" style="width: 28px; height: 28px; border-radius: 50%;">
-                        <img src="/static/assets/主角_本人业务经理_45度侧身.jpg" class="char-avatar-img" alt="阿勇侧面">
-                    </div>
-                    <span class="char-name" style="font-size: 11px; font-weight: 600; color: #94a3b8;">@阿勇侧面</span>
-                </div>
+        <!-- 顶部操作栏 (极简无框排布：主角正面/侧身管理 + 场景图加号，彻底去除臃肿背景与边框) -->
+        <div class="input-top-toolbar" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; width: 100%;">
+            <!-- 主角机位与管理区 (纯净头像图标，无外层黑圆和死边框，点击支持编辑/上传，长按/右侧支持删除) -->
+            <div id="characterToolbarArea" style="display: flex; align-items: center; gap: 10px;">
+                <!-- 动态由JS渲染主角正面、侧面或空状态添加按钮 -->
             </div>
 
             <!-- 场景图上传入口与胶囊栏 (彻底移到输入框上方) -->
             <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                <!-- ➕ 场景图加号按钮 -->
-                <button class="btn-add-scene" onclick="triggerSceneUpload()" title="点击插入场景图，自动生成蓝色图片1/图片2标签" style="background: rgba(14, 165, 233, 0.15); border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">
+                <!-- ➕ 场景图加号按钮 (轻量纯净样式) -->
+                <button class="btn-add-scene" onclick="triggerSceneUpload()" title="点击插入场景图，自动生成蓝色图片1/图片2标签" style="background: rgba(14, 165, 233, 0.15); border-color: rgba(56, 189, 248, 0.4); color: #38bdf8; padding: 4px 10px;">
                     <span style="font-size: 14px; font-weight: 800; line-height: 1;">＋</span>
                     <span>场景图</span>
                 </button>
@@ -761,30 +749,56 @@
         </div>
     </div>
 
-    <!-- 3. 添加新人物角色弹窗 -->
+    <!-- 3. 主角形象设置与修改模态框 (支持上传/修改正面照与45°侧身照，支持删除) -->
     <div class="drawer-modal" id="addRoleModal">
-        <div class="confirm-dialog">
+        <div class="confirm-dialog" style="max-width: 440px; width: 92%; padding: 18px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <span style="font-size: 16px; font-weight: 800; color: #fff;">👤 添加新出镜人物形象</span>
-                <button class="icon-circle-btn" style="width: 28px; height: 28px; font-size: 12px;" onclick="closeAddRoleModal()">✕</button>
+                <span id="roleModalTitle" style="font-size: 15px; font-weight: 800; color: #fff;">👤 设置主角出镜形象</span>
+                <button class="icon-circle-btn" style="width: 26px; height: 26px; font-size: 11px;" onclick="closeAddRoleModal()">✕</button>
             </div>
-            <p style="font-size: 12px; color: var(--jimeng-text-sub); line-height: 1.5; margin-bottom: 12px;">
-                上传真实出镜人脸照片（如合伙人、业务主管、客户老板），上传后可一键 @出镜：
+            
+            <p style="font-size: 11px; color: var(--jimeng-text-sub); line-height: 1.5; margin-bottom: 14px;">
+                上传你自己的真实出镜照片（必须明亮无阴影实拍），云端视频模型将严格以此面孔驱动：
             </p>
-            <div style="margin-bottom: 12px;">
-                <label style="font-size: 12px; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 6px;">人物称呼/角色名：</label>
-                <input type="text" id="inputNewRoleName" placeholder="例如：勇哥搭档、生产主管" style="width: 100%; padding: 8px 12px; background: #111116; border: 1px solid var(--jimeng-border); border-radius: 8px; color: #fff; font-size: 13px; outline: none;">
-            </div>
-            <div style="background: #111118; border: 1px dashed rgba(139, 92, 246, 0.4); border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 14px;">
-                <input type="file" id="roleFileInput" accept="image/*" style="display: none;" onchange="handleRolePhotoSelected(event)">
-                <button class="btn-mode-pill" style="margin: 0 auto; padding: 9px 20px; background: var(--jimeng-gradient-btn);" onclick="document.getElementById('roleFileInput').click()">
-                    📷 选择人物清晰面部照片
+
+            <!-- 1. 正面照 -->
+            <div style="background: #111118; border: 1px dashed rgba(139, 92, 246, 0.4); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <img id="previewRoleFront" src="/static/assets/主角_本人业务经理_正面特写.jpg" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 1.5px solid #a855f7;">
+                    <div>
+                        <div style="font-size: 12px; font-weight: 700; color: #f1f5f9;">正面高清特写 (必传)</div>
+                        <div style="font-size: 10px; color: #94a3b8;">平视明亮，背景干净</div>
+                    </div>
+                </div>
+                <button onclick="document.getElementById('inputRoleFront').click()" style="background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.45); color: #c084fc; font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer;">
+                    更换正面照
                 </button>
-                <p id="newRoleFileTip" style="font-size: 11px; color: var(--jimeng-text-muted); margin-top: 8px;">建议竖版单人高清照，无遮挡</p>
+                <input type="file" id="inputRoleFront" accept="image/*" style="display: none;" onchange="handleUploadCustomRole(event, 'front')">
             </div>
-            <button class="btn-generate-main ready" id="btnConfirmAddRole" onclick="submitAddNewRole()" style="width: 100%; justify-content: center; padding: 11px;">
-                保存并加入角色栏
-            </button>
+
+            <!-- 2. 45°侧身照 -->
+            <div style="background: #111118; border: 1px dashed rgba(139, 92, 246, 0.4); border-radius: 12px; padding: 12px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <img id="previewRoleSide" src="/static/assets/主角_本人业务经理_45度侧身.jpg" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 1.5px solid #38bdf8;">
+                    <div>
+                        <div style="font-size: 12px; font-weight: 700; color: #f1f5f9;">45° 侧身照 (选传)</div>
+                        <div style="font-size: 10px; color: #94a3b8;">用于侧向运镜与手势</div>
+                    </div>
+                </div>
+                <button onclick="document.getElementById('inputRoleSide').click()" style="background: rgba(14, 165, 233, 0.2); border: 1px solid rgba(56, 189, 248, 0.45); color: #38bdf8; font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer;">
+                    更换侧身照
+                </button>
+                <input type="file" id="inputRoleSide" accept="image/*" style="display: none;" onchange="handleUploadCustomRole(event, 'side')">
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+                <button onclick="deleteCustomRolePhotos()" style="flex: 1; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #f87171; font-size: 12px; font-weight: 700; padding: 9px; border-radius: 8px; cursor: pointer;">
+                    🗑️ 清空主角形象
+                </button>
+                <button class="btn-generate-main ready" onclick="closeAddRoleModal()" style="flex: 1; justify-content: center; padding: 9px; border-radius: 8px;">
+                    完成保存
+                </button>
+            </div>
         </div>
     </div>
 
@@ -866,6 +880,7 @@
             // 每次打开或刷新页面，输入区与场景图保持纯净，绝不强行塞入历史老图片
             uploadedSceneImages = [];
             currentParsedSegments = [];
+            initRoleState();
             renderScenePills();
             syncHighlights();
             await restoreActiveRenderJobs();
@@ -947,16 +962,116 @@
             document.getElementById("modalCostSpan").innerText = m === "cloud" ? `¥${currentCost.toFixed(2)}` : "¥0.00 (免费测试)";
         }
 
-        // 4. ★ 角色选择与@主角：点击人物头像立即高亮并向输入框精准插入@角色
+        // 4. ★ 纯净主角管理体系 (默认空状态加号/已上传主角卡片)
+        let mainRoleData = {
+            hasRole: true,
+            frontUrl: "/static/assets/主角_本人业务经理_正面特写.jpg",
+            sideUrl: "/static/assets/主角_本人业务经理_45度侧身.jpg"
+        };
+
+        // 从本地存储读取用户是否自定义过主角形象
+        function initRoleState() {
+            const saved = localStorage.getItem("ayong_custom_role");
+            if (saved) {
+                try {
+                    mainRoleData = JSON.parse(saved);
+                } catch(e) {}
+            }
+            renderCharacterToolbar();
+        }
+
+        function renderCharacterToolbar() {
+            const container = document.getElementById("characterToolbarArea");
+            if (!container) return;
+
+            // 1. 若未设置主角形象，显示一个轻量级“＋ 主角形象”加号卡片
+            if (!mainRoleData.hasRole) {
+                container.innerHTML = `
+                    <button onclick="openAddRoleModal()" style="display: flex; align-items: center; gap: 5px; background: rgba(168, 85, 247, 0.15); border: 1px dashed #a855f7; color: #c084fc; padding: 4px 10px; border-radius: 9999px; font-size: 11px; font-weight: 700; cursor: pointer;">
+                        <span style="font-size: 14px; font-weight: 800; line-height: 1;">＋</span>
+                        <span>上传主角形象</span>
+                    </button>
+                `;
+                return;
+            }
+
+            // 2. 若已上传主角，直接展示正面与侧身快捷@标签，且支持点击头像直接修改
+            container.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <!-- 正面 -->
+                    <div style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                        <img src="${mainRoleData.frontUrl}" onclick="openAddRoleModal()" title="点击修改主角形象照片" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1.5px solid #a855f7;">
+                        <span onclick="insertTextAtCursor('@阿勇正面 ')" style="font-size: 11px; font-weight: 700; color: #f1f5f9; background: rgba(255,255,255,0.06); padding: 2px 7px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08);" title="点击在输入框插入@阿勇正面">@正面</span>
+                    </div>
+
+                    <!-- 45°侧身 -->
+                    <div style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                        <img src="${mainRoleData.sideUrl || mainRoleData.frontUrl}" onclick="openAddRoleModal()" title="点击修改主角形象照片" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1.5px solid #38bdf8;">
+                        <span onclick="insertTextAtCursor('@阿勇侧面 ')" style="font-size: 11px; font-weight: 600; color: #94a3b8; background: rgba(255,255,255,0.04); padding: 2px 7px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);" title="点击在输入框插入@阿勇侧面">@侧面</span>
+                    </div>
+
+                    <!-- 编辑管理齿轮 -->
+                    <span onclick="openAddRoleModal()" title="管理主角形象照片" style="font-size: 12px; color: #94a3b8; cursor: pointer; padding: 2px 4px; opacity: 0.7;">⚙️</span>
+                </div>
+            `;
+        }
+
+        // 打开/关闭主角形象弹窗
+        function openAddRoleModal() {
+            document.getElementById("previewRoleFront").src = mainRoleData.frontUrl || "";
+            document.getElementById("previewRoleSide").src = mainRoleData.sideUrl || "";
+            document.getElementById("addRoleModal").classList.add("active");
+        }
+        function closeAddRoleModal() {
+            document.getElementById("addRoleModal").classList.remove("active");
+            renderCharacterToolbar();
+        }
+
+        // 上传自定义主角正面/侧面照
+        async function handleUploadCustomRole(event, type) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const fd = new FormData();
+            fd.append("file", file);
+            fd.append("category", "character");
+
+            try {
+                const res = await fetch("/api/v1/storage/upload-local", { method: "POST", body: fd });
+                const data = await res.json();
+                if (data.success) {
+                    mainRoleData.hasRole = true;
+                    if (type === "front") {
+                        mainRoleData.frontUrl = data.local_url;
+                        document.getElementById("previewRoleFront").src = data.local_url;
+                    } else {
+                        mainRoleData.sideUrl = data.local_url;
+                        document.getElementById("previewRoleSide").src = data.local_url;
+                    }
+                    localStorage.setItem("ayong_custom_role", JSON.stringify(mainRoleData));
+                    renderCharacterToolbar();
+                } else {
+                    alert("上传失败: " + (data.detail || "未知异常"));
+                }
+            } catch (err) {
+                alert("上传异常: " + err);
+            }
+        }
+
+        // 清空/删除当前主角形象
+        function deleteCustomRolePhotos() {
+            if (!confirm("确定要清空主角形象吗？清空后将恢复为默认加号状态。")) return;
+            mainRoleData = {
+                hasRole: false,
+                frontUrl: "",
+                sideUrl: ""
+            };
+            localStorage.setItem("ayong_custom_role", JSON.stringify(mainRoleData));
+            closeAddRoleModal();
+            renderCharacterToolbar();
+        }
+
         function selectRole(roleType, tag) {
-            document.querySelectorAll(".char-item").forEach(el => el.classList.remove("active"));
-            document.querySelectorAll(".char-avatar-ring").forEach(el => el.classList.remove("active"));
-
-            const targetItem = event.currentTarget;
-            targetItem.classList.add("active");
-            const ring = targetItem.querySelector(".char-avatar-ring");
-            if (ring) ring.classList.add("active");
-
             insertTextAtCursor(`${tag} `);
         }
 
