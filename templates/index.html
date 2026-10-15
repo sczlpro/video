@@ -367,7 +367,7 @@
             position: relative;
             width: 100%;
             min-height: 80px;
-            max-height: 380px;
+            max-height: 28vh;
             background: transparent;
             border: none;
             color: transparent;
@@ -573,35 +573,49 @@
 
     <!-- 底部即梦输入卡片与发牌栏 -->
     <footer class="bottom-console-wrapper">
-        <div style="display: flex; gap: 14px; align-items: flex-end; width: 100%;">
-            <!-- 主角阿勇实体头像 (位于输入框左侧，不占用垂直空间) -->
-            <div class="char-side-box" style="display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; padding-bottom: 6px;">
-                <div class="char-item active" id="charAyong" onclick="selectRole('ayong', '@阿勇')" title="点击@主角出镜" style="cursor: pointer;">
-                    <div class="char-avatar-ring active" id="ringAyong" style="width: 52px; height: 52px;">
-                        <img src="/static/assets/主角_本人业务经理_正面特写.jpg" class="char-avatar-img" alt="主角阿勇">
-                        <span class="char-badge-tag">主角</span>
-                    </div>
+        <!-- 主角阿勇实体头像与添加角色栏 (置于输入框上方中央，左右完全不侵占宽度，手机端100%协调) -->
+        <div class="char-top-bar" style="display: flex; align-items: center; justify-content: center; gap: 18px; margin-bottom: 8px;">
+            <div class="char-item active" id="charAyong" onclick="selectRole('ayong', '@阿勇')" title="点击在输入框@主角出镜" style="display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer;">
+                <div class="char-avatar-ring active" id="ringAyong" style="width: 48px; height: 48px;">
+                    <img src="/static/assets/主角_本人业务经理_正面特写.jpg" class="char-avatar-img" alt="主角阿勇">
+                    <span class="char-badge-tag">主角</span>
                 </div>
-                <span class="char-name" style="font-size: 11px; font-weight: 700; color: #cbd5e1;">阿勇</span>
+                <span class="char-name" style="font-size: 11px; font-weight: 700; color: #f1f5f9;">阿勇</span>
             </div>
 
-            <!-- 主提示词与场景卡片 -->
-            <div class="prompt-card" style="flex: 1; min-width: 0;">
+            <!-- 侧身出镜快捷按钮 -->
+            <div class="char-item" onclick="selectRole('ayong_side', '@阿勇侧面')" title="点击在输入框插入@阿勇侧面机位" style="display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer;">
+                <div class="char-avatar-ring" style="width: 48px; height: 48px;">
+                    <img src="/static/assets/主角_本人业务经理_45度侧身.jpg" class="char-avatar-img" alt="阿勇侧面">
+                </div>
+                <span class="char-name" style="font-size: 11px; font-weight: 600; color: #94a3b8;">45°侧身</span>
+            </div>
+        </div>
+
+        <!-- 主提示词与场景卡片 (宽度100%铺满容器，手机端居中大气) -->
+        <div class="prompt-card" style="width: 100%;">
             
-            <!-- 场景图控制栏 (左上角：＋ 场景图 按钮 + 场景图胶囊标签) -->
-            <div class="scene-header-bar" style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
-                <!-- ➕ 场景图加号按钮 (置于输入框左上角，逻辑顺畅统一) -->
-                <button class="btn-add-scene" onclick="triggerSceneUpload()" title="点击插入场景图，自动生成蓝色图片1/图片2标签">
-                    <span style="font-size: 15px; font-weight: 800; line-height: 1;">＋</span>
-                    <span>场景图</span>
-                </button>
-                <input type="file" id="sceneFileInput" accept="image/*" multiple style="display: none;" onchange="handleSceneFilesSelected(event)">
+            <!-- 场景图控制栏 (左上角：＋ 场景图 按钮 + 场景图胶囊标签 + 右侧全屏展开按钮) -->
+            <div class="scene-header-bar" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1;">
+                    <!-- ➕ 场景图加号按钮 (置于输入框左上角，逻辑顺畅统一) -->
+                    <button class="btn-add-scene" onclick="triggerSceneUpload()" title="点击插入场景图，自动生成蓝色图片1/图片2标签">
+                        <span style="font-size: 15px; font-weight: 800; line-height: 1;">＋</span>
+                        <span>场景图</span>
+                    </button>
+                    <input type="file" id="sceneFileInput" accept="image/*" multiple style="display: none;" onchange="handleSceneFilesSelected(event)">
 
-                <!-- 场景图胶囊容器 -->
-                <div id="scenePillContainer" class="scene-pill-container" style="display: none; margin-bottom: 0; padding-bottom: 0; border-bottom: none;"></div>
+                    <!-- 场景图胶囊容器 -->
+                    <div id="scenePillContainer" class="scene-pill-container" style="display: none; margin-bottom: 0; padding-bottom: 0; border-bottom: none;"></div>
+                </div>
+
+                <!-- 右上角全屏/大窗口查看提示词按钮 (长文案时自适应出现) -->
+                <button id="btnExpandPrompt" onclick="openFullscreenPromptModal()" style="display: none; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #c084fc; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; cursor: pointer;" title="全屏查看与编辑长提示词">
+                    ⛶ 全屏查看
+                </button>
             </div>
 
-            <!-- 场景图与角色占位符高亮输入区 (富科技感占位符高亮) -->
+            <!-- 场景图与角色占位符高亮输入区 (严格限制手机端最大高度占屏1/3) -->
             <div class="prompt-input-container">
                 <div class="prompt-backdrop" id="promptBackdrop">
                     <div class="prompt-highlights" id="promptHighlights"></div>
@@ -623,7 +637,6 @@
                 </button>
             </div>
 
-        </div>
         </div>
     </footer>
 
@@ -740,22 +753,63 @@
         </div>
     </div>
 
-    <!-- 4. 历史成片与任务库抽屉 -->
+    <!-- 4. 历史成片九宫格视觉抽屉 (对标即梦手机端：大图/视频缩略图网格 + 一键全屏播放弹窗) -->
     <div class="drawer-modal" id="historyDrawer">
-        <div class="drawer-sheet" style="max-height: 82vh; display: flex; flex-direction: column;">
+        <div class="drawer-sheet" style="max-height: 88vh; display: flex; flex-direction: column; padding: 16px 14px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.08);">
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 16px; font-weight: 800; color: #fff;">🕒 历史成片与任务库</span>
+                    <span style="font-size: 16px; font-weight: 800; color: #fff;">🎬 历史成片库</span>
                     <span id="historyTotalBadge" style="font-size: 11px; background: rgba(139,92,246,0.25); color:#c084fc; border: 1px solid rgba(139,92,246,0.4); padding: 2px 8px; border-radius: 9999px; font-weight: 700;">0 条</span>
                 </div>
                 <button class="icon-circle-btn" style="width: 28px; height: 28px; font-size: 12px;" onclick="closeHistoryDrawer()">✕</button>
             </div>
-            <p style="font-size: 12px; color: var(--jimeng-text-sub); line-height: 1.4; margin-bottom: 12px;">
-                云端渲染与本地合成的所有母带和原片均在此沉淀，点击可随时在主屏播放或一键下载：
-            </p>
-            <div id="historyListContainer" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 4px;">
-                <div style="text-align: center; padding: 30px; color: #94a3b8; font-size: 12px;">正在读取历史成片...</div>
+            
+            <!-- 手机端沉浸九宫格/双列画廊网格 -->
+            <div id="historyListContainer" style="flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; padding-right: 2px;">
+                <div style="grid-column: 1 / -1; text-align: center; padding: 30px; color: #94a3b8; font-size: 12px;">正在读取历史成片...</div>
             </div>
+        </div>
+    </div>
+
+    <!-- 5. 视频弹窗全屏预览器 (点击九宫格后呼出，带大播放器与下载/删除操作) -->
+    <div class="drawer-modal" id="videoPreviewModal" style="z-index: 60;">
+        <div class="confirm-dialog" style="max-width: 420px; width: 92%; padding: 14px; background: rgba(18, 18, 24, 0.98); border: 1px solid rgba(139, 92, 246, 0.5); border-radius: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span id="modalPreviewTitle" style="font-size: 13px; font-weight: 800; color: #f1f5f9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 280px;">视频播放</span>
+                <button class="icon-circle-btn" style="width: 26px; height: 26px; font-size: 11px;" onclick="closeVideoPreviewModal()">✕</button>
+            </div>
+            
+            <div style="width: 100%; aspect-ratio: 9/16; max-height: 58vh; background: #000; border-radius: 12px; overflow: hidden; margin-bottom: 12px; display: flex; align-items: center; justify-content: center;">
+                <video id="modalPreviewPlayer" controls playsinline style="width: 100%; height: 100%; object-fit: contain;"></video>
+            </div>
+
+            <p id="modalPreviewSnippet" style="font-size: 11px; color: #94a3b8; line-height: 1.4; margin-bottom: 12px; max-height: 40px; overflow: hidden; text-overflow: ellipsis;"></p>
+
+            <div style="display: flex; gap: 8px; justify-content: space-between;">
+                <button id="btnSetAsMaster" style="flex: 1; background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.5); color: #c084fc; font-size: 12px; font-weight: 700; padding: 8px; border-radius: 8px; cursor: pointer;">
+                    📺 设为主屏
+                </button>
+                <a id="btnModalDownload" href="" download="" style="flex: 1; text-align: center; text-decoration: none; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #cbd5e1; font-size: 12px; font-weight: 700; padding: 8px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center;">
+                    ⬇️ 下载
+                </a>
+                <button id="btnModalDelete" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #f87171; font-size: 12px; font-weight: 700; padding: 8px 12px; border-radius: 8px; cursor: pointer;">
+                    🗑️ 删除
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. 提示词全屏大弹窗查看器 (长文案时手机端编辑极度从容) -->
+    <div class="drawer-modal" id="fullscreenPromptModal" style="z-index: 60;">
+        <div class="confirm-dialog" style="max-width: 580px; width: 94%; max-height: 85vh; display: flex; flex-direction: column; padding: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <span style="font-size: 15px; font-weight: 800; color: #fff;">⛶ 全屏提示词工作台</span>
+                <button class="icon-circle-btn" style="width: 26px; height: 26px; font-size: 11px;" onclick="closeFullscreenPromptModal()">✕</button>
+            </div>
+            <textarea id="fullscreenPromptInput" style="flex: 1; min-height: 48vh; width: 100%; background: #111116; border: 1px solid var(--jimeng-border); border-radius: 12px; color: #f1f5f9; font-size: 14px; line-height: 1.6; padding: 12px; outline: none; resize: none; font-family: inherit; margin-bottom: 12px;"></textarea>
+            <button class="btn-generate-main ready" onclick="saveFullscreenPrompt()" style="width: 100%; justify-content: center; padding: 10px;">
+                完成并同步回主屏
+            </button>
         </div>
     </div>
 
@@ -1023,8 +1077,15 @@
             const textarea = document.getElementById("promptInput");
             if (!textarea) return;
             textarea.style.height = "auto";
-            const newHeight = Math.min(Math.max(textarea.scrollHeight, 80), 380);
+            const maxH = Math.min(window.innerHeight * 0.32, 280);
+            const newHeight = Math.min(Math.max(textarea.scrollHeight, 80), maxH);
             textarea.style.height = newHeight + "px";
+
+            // 如果内容超高，显示右上角全屏展开按钮
+            const expandBtn = document.getElementById("btnExpandPrompt");
+            if (expandBtn) {
+                expandBtn.style.display = textarea.scrollHeight > maxH ? "flex" : "none";
+            }
         }
 
         function handlePromptInput() {
@@ -1293,7 +1354,9 @@
             }
         }
 
-        // 14. ★ 历史成片与任务库抽屉引擎
+        // 14. ★ 历史成片九宫格视觉引擎
+        let currentModalPreviewItem = null;
+
         function openHistoryDrawer() {
             document.getElementById("historyDrawer").classList.add("active");
             loadRenderHistory();
@@ -1305,43 +1368,41 @@
         async function loadRenderHistory() {
             const container = document.getElementById("historyListContainer");
             const badge = document.getElementById("historyTotalBadge");
-            container.innerHTML = `<div style="text-align: center; padding: 24px; color: #94a3b8; font-size: 12px;">⏳ 正在读取历史成片...</div>`;
+            container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 24px; color: #94a3b8; font-size: 12px;">⏳ 正在读取历史成片...</div>`;
 
             try {
                 const res = await fetch("/api/v1/render/history");
                 const data = await res.json();
                 const items = data.items || [];
-                badge.innerText = `${items.length} 条`;
+                badge.innerText = `${items.length} 部`;
 
                 if (items.length === 0) {
-                    container.innerHTML = `<div style="text-align: center; padding: 30px; color: #94a3b8; font-size: 12px;">暂无历史视频</div>`;
+                    container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 30px; color: #94a3b8; font-size: 12px;">暂无历史视频</div>`;
                     return;
                 }
 
-                container.innerHTML = items.map(item => {
+                container.innerHTML = items.map((item, index) => {
                     const deleteId = item.project_id || item.filename;
+                    const itemJson = JSON.stringify(item).replace(/"/g, '&quot;');
                     return `
-                    <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
-                            <div style="font-size: 13px; font-weight: 700; color: #f1f5f9; word-break: break-all; line-height: 1.4;">
-                                <span style="color:#10b981; margin-right:4px;">✨[母带]</span>
-                                ${item.title}
-                            </div>
-                            <span style="font-size: 11px; font-weight: 800; color: #a855f7; flex-shrink: 0;">${item.size_mb} MB</span>
+                    <div onclick="openVideoPreviewModal(${itemJson})" style="position: relative; aspect-ratio: 9/16; background: #000; border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; overflow: hidden; cursor: pointer; display: flex; flex-direction: column; justify-content: flex-end; padding: 6px; box-shadow: 0 4px 14px rgba(0,0,0,0.6); transition: transform 0.2s ease;">
+                        <!-- 视频首帧背景海报 -->
+                        <video src="${item.video_url}#t=0.5" preload="metadata" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; opacity: 0.85;"></video>
+                        
+                        <!-- 居中微光播放图标 -->
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 34px; height: 34px; border-radius: 50%; background: rgba(0,0,0,0.55); border: 1.5px solid rgba(255,255,255,0.7); display: flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; backdrop-filter: blur(4px);">
+                            ▶
                         </div>
-                        ${item.script_snippet ? `<div style="font-size: 11px; color: #94a3b8; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">📝 ${item.script_snippet}</div>` : ''}
-                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #94a3b8;">
-                            <span>🕒 ${item.created_at}</span>
-                            <div style="display: flex; gap: 6px; align-items: center;">
-                                <button onclick="playHistoryVideo('${item.video_url}', '${item.filename}')" style="background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.4); color: #c084fc; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer;">
-                                    ▶️ 载入播放
-                                </button>
-                                <a href="${item.download_url}" download="${item.filename}" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: #cbd5e1; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center;">
-                                    ⬇️ 下载
-                                </a>
-                                <button onclick="deleteHistoryRecord('${deleteId}', event)" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #f87171; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 6px; cursor: pointer;" title="删除此记录及对应视频">
-                                    🗑️ 删除
-                                </button>
+
+                        <!-- 顶部体积标签 -->
+                        <div style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.75); color: #c084fc; font-size: 10px; font-weight: 800; padding: 1px 5px; border-radius: 4px; border: 1px solid rgba(139,92,246,0.3);">
+                            ${item.size_mb}M
+                        </div>
+
+                        <!-- 底部时间遮罩 -->
+                        <div style="position: relative; z-index: 2; background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.92) 100%); margin: -6px; padding: 16px 6px 6px 6px;">
+                            <div style="font-size: 10px; font-weight: 700; color: #f1f5f9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                ${item.title.replace('川渝光伏成片_', '')}
                             </div>
                         </div>
                     </div>
@@ -1349,21 +1410,71 @@
                 }).join("");
 
             } catch (err) {
-                container.innerHTML = `<div style="text-align: center; padding: 20px; color: #ef4444; font-size: 12px;">加载失败: ${err}</div>`;
+                container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #ef4444; font-size: 12px;">加载失败: ${err}</div>`;
             }
         }
 
-        function playHistoryVideo(videoUrl, filename) {
-            const videoEl = document.getElementById("masterVideoPlayer");
-            videoEl.src = videoUrl;
-            videoEl.play().catch(e => console.log("Auto play prevented", e));
+        // 打开全屏大视频弹窗
+        function openVideoPreviewModal(item) {
+            currentModalPreviewItem = item;
+            const modal = document.getElementById("videoPreviewModal");
+            const player = document.getElementById("modalPreviewPlayer");
+            const titleEl = document.getElementById("modalPreviewTitle");
+            const snippetEl = document.getElementById("modalPreviewSnippet");
+            const dlBtn = document.getElementById("btnModalDownload");
+            const delBtn = document.getElementById("btnModalDelete");
+            const masterBtn = document.getElementById("btnSetAsMaster");
 
-            const dlBtn = document.getElementById("btnDownloadMaster");
-            dlBtn.href = videoUrl;
-            dlBtn.download = filename;
+            titleEl.innerText = item.title;
+            snippetEl.innerText = item.script_snippet ? `台词: ${item.script_snippet}` : "";
+            player.src = item.video_url;
+            dlBtn.href = item.download_url;
+            dlBtn.download = item.filename;
 
-            closeHistoryDrawer();
-            closeProgressCard();
+            masterBtn.onclick = () => {
+                const videoEl = document.getElementById("masterVideoPlayer");
+                videoEl.src = item.video_url;
+                videoEl.play().catch(e => console.log("Auto play prevented", e));
+                closeVideoPreviewModal();
+                closeHistoryDrawer();
+            };
+
+            delBtn.onclick = async () => {
+                const deleteId = item.project_id || item.filename;
+                await deleteHistoryRecord(deleteId);
+                closeVideoPreviewModal();
+            };
+
+            modal.classList.add("active");
+            player.play().catch(e => console.log("Auto play prevented", e));
+        }
+
+        function closeVideoPreviewModal() {
+            const modal = document.getElementById("videoPreviewModal");
+            const player = document.getElementById("modalPreviewPlayer");
+            if (player) player.pause();
+            modal.classList.remove("active");
+        }
+
+        // 全屏提示词工作台
+        function openFullscreenPromptModal() {
+            const mainText = document.getElementById("promptInput").value;
+            const fullInput = document.getElementById("fullscreenPromptInput");
+            fullInput.value = mainText;
+            document.getElementById("fullscreenPromptModal").classList.add("active");
+            fullInput.focus();
+        }
+
+        function closeFullscreenPromptModal() {
+            document.getElementById("fullscreenPromptModal").classList.remove("active");
+        }
+
+        function saveFullscreenPrompt() {
+            const fullText = document.getElementById("fullscreenPromptInput").value;
+            const mainTextarea = document.getElementById("promptInput");
+            mainTextarea.value = fullText;
+            handlePromptInput();
+            closeFullscreenPromptModal();
         }
 
         async function deleteHistoryRecord(recordId, event) {
