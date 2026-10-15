@@ -45,11 +45,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# 自定义带永久强缓存的静态文件处理中间件 (彻底解决手机公网重复下载卡顿)
+class CachedStaticFiles(StaticFiles):
+    def file_response(self, *args, **kwargs):
+        resp = super().file_response(*args, **kwargs)
+        # 为所有 mp4 视频和静态素材注入 30 天强缓存头，手机浏览器只要播过一次，永久在手机本地沙箱秒开！
+        resp.headers["Cache-Control"] = "public, max-age=2592000, immutable"
+        return resp
+
 # 挂载静态资源
 assets_dir = settings.BASE_DIR / "static"
 if not assets_dir.exists():
     assets_dir.mkdir(parents=True, exist_ok=True)
-app.mount("/static", StaticFiles(directory=str(assets_dir)), name="static")
+app.mount("/static", CachedStaticFiles(directory=str(assets_dir)), name="static")
 
 # 注册 API 路由
 app.include_router(api_v1_router)

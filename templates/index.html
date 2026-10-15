@@ -1582,13 +1582,20 @@
 
             titleEl.innerText = item.title;
             snippetEl.innerText = item.script_snippet ? `台词: ${item.script_snippet}` : "";
-            player.src = item.video_url;
+
+            // 智能防重复下载：如果当前播放器已经在播放这个视频，绝不重新拉取重置 src！
+            if (player.src !== item.video_url && !player.src.endsWith(item.video_url)) {
+                player.src = item.video_url;
+            }
+
             dlBtn.href = item.download_url;
             dlBtn.download = item.filename;
 
             masterBtn.onclick = () => {
                 const videoEl = document.getElementById("masterVideoPlayer");
-                videoEl.src = item.video_url;
+                if (videoEl.src !== item.video_url && !videoEl.src.endsWith(item.video_url)) {
+                    videoEl.src = item.video_url;
+                }
                 videoEl.play().catch(e => console.log("Auto play prevented", e));
                 closeVideoPreviewModal();
                 closeHistoryDrawer();
