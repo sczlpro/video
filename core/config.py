@@ -23,15 +23,14 @@ class Settings(BaseSettings):
     DB_PATH: Path = BASE_DIR / "solar_production.db"
 
     # Cloudflare R2 对象存储配置 (3 个核心凭证 + 桶名与公开域名)
-    CF_ACCOUNT_ID: str = os.getenv("CF_ACCOUNT_ID", "")
-    CF_R2_ACCESS_KEY_ID: str = os.getenv("CF_R2_ACCESS_KEY_ID", "")
-    CF_R2_SECRET_ACCESS_KEY: str = os.getenv("CF_R2_SECRET_ACCESS_KEY", "")
-    CF_R2_BUCKET: str = os.getenv("CF_R2_BUCKET", "ayong-solar-video")
-    CF_R2_PUBLIC_DOMAIN: str = os.getenv("CF_R2_PUBLIC_DOMAIN", "")
+    CF_ACCOUNT_ID: str = os.getenv("CF_ACCOUNT_ID", "76a15b9c1f33264e46cab2d918e3621c")
+    CF_R2_ACCESS_KEY_ID: str = os.getenv("CF_R2_ACCESS_KEY_ID", "3bcbaa0f5907445d25feaa6c2f783ead")
+    CF_R2_SECRET_ACCESS_KEY: str = os.getenv("CF_R2_SECRET_ACCESS_KEY", "0f2647d8f893e96b6e67ff71d545652bd701113d7840b1c29e499a7d968f7151")
+    CF_R2_BUCKET: str = os.getenv("CF_R2_BUCKET", "video")
+    CF_R2_PUBLIC_DOMAIN: str = os.getenv("CF_R2_PUBLIC_DOMAIN", "pub-181ed1de566e43d8947046a376d951a9.r2.dev")
 
-    # 外部算力与TTS配置预留
-    AUTODL_API_KEY: Optional[str] = os.getenv("AUTODL_API_KEY", "")
-    DASHSCOPE_API_KEY: Optional[str] = os.getenv("DASHSCOPE_API_KEY", "")
+    # 外部算力配置 (AutoDL)
+    AUTODL_TOKEN: str = os.getenv("AUTODL_TOKEN", "4jOhvQKivGDj8NeCzCC3XtQVbKW7uIlspYQcAlW0vQvNSVQK")
 
     @property
     def is_r2_configured(self) -> bool:

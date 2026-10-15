@@ -15,13 +15,14 @@ from PIL import Image
 
 from core.config import settings
 from core.assembler import concat_videos_ffmpeg
+from storage.r2_client import r2_storage
 from db.database import SessionLocal
 from db.models import Project, RenderTask
 
 CONFIG_PATH = Path(r"C:\Users\Administrator\.dsh\tools\dh_api_config.json")
 
 class AutoDLService:
-    """AutoDL 算力云端联动与分镜渲染调度引擎"""
+    """AutoDL 算力云端联动与分镜渲染调度引擎 (全链路原生接入 Cloudflare R2 对象存储)"""
 
     def __init__(self):
         self.config = self._load_config()
@@ -31,24 +32,13 @@ class AutoDLService:
         self.executor = ThreadPoolExecutor(max_workers=5)
 
     def _load_config(self) -> dict:
-        """从 dh_api_config.json 读取已冻结鉴权与端点"""
-        if CONFIG_PATH.exists():
-            try:
-                with open(CONFIG_PATH, "r", encoding="utf-8") as f:
-                    return json.load(f)
-            except Exception as e:
-                print(f"[AutoDLService] 读取配置异常: {e}")
-        # 回退默认值
-        return {
+        """从环境变量或本地配置读取鉴权与端点"""
+        base_cfg = {
             "autodl": {
-                "base_url": "https://www.autodl.art",
-                "token": "4jOhvQKivGDj8NeCzCC3XtQVbKW7uIlspYQcAlW0vQvNSVQK",
+                "base_url": os.getenv("AUTODL_BASE_URL", "https://www.autodl.art"),
+                "token": os.getenv("AUTODL_TOKEN", settings.AUTODL_TOKEN),
                 "submit_path": "/api/v1/comfyui/comfyui_workflow/{workflow_id}",
                 "result_path": "/api/v1/comfyui/comfyui_workflow/result/{task_id}",
-            },
-            "dashscope": {
-                "base_url": "https://dashscope.aliyuncs.com/api/v1",
-                "api_key": "sk-ws-H.PLRRHMP.L1tj.MEUCIF9Y9abUPb611bQWguhA1fHJoyCQg6gZhp6JeLq5LosiAiEA7llSXkNP-8W82R-bjL-Kt0QldqCPgwGUZiCB-MXx4oA",
             },
             "video": {
                 "workflow_id": "minimax_h3_zm_u24",
@@ -58,6 +48,17 @@ class AutoDLService:
             }
         }
 
+        if CONFIG_PATH.exists():
+            try:
+                with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+                    file_cfg = json.load(f)
+                    if "autodl" in file_cfg:
+                        base_cfg["autodl"].update(file_cfg["autodl"])
+            except Exception as e:
+                print(f"[AutoDLService] 读取本地配置异常: {e}")
+
+        return base_cfg
+
     # ----------------- 鉴权头 -----------------
     def autodl_headers(self) -> dict:
         tok = self.config.get("autodl", {}).get("token", "")
@@ -66,19 +67,12 @@ class AutoDLService:
             "Content-Type": "application/json"
         }
 
-    def dash_headers(self, json_body: bool = True) -> dict:
-        key = self.config.get("dashscope", {}).get("api_key", "")
-        h = {"Authorization": f"Bearer {key}"}
-        if json_body:
-            h["Content-Type"] = "application/json"
-        return h
-
-    # ----------------- 素材直传（DashScope带缓存、安全ASCII与自动重试） -----------------
+    # ----------------- 素材直传（Cloudflare R2 极速对象存储，带智能轻量化与SHA256去重） -----------------
     def _prepare_upload_bytes(self, file_path: Path) -> tuple[bytes, str]:
         """
         准备上传字节：
-        1. 针对超过 1.5MB 的图片进行高质等比缩放至最长边 1920，体积从 7MB 降至 300KB，杜绝网络超时断流；
-        2. 返回安全的纯 ASCII 英文文件名，彻底消灭中文字符在 HTTP Multipart 请求头中的编码断开。
+        1. 针对大图等比缩放至最长边 1920，体积显著降低，加快云端拉取速度；
+        2. 返回安全纯 ASCII 英文文件名。
         """
         raw_bytes = file_path.read_bytes()
         h = hashlib.md5(raw_bytes).hexdigest()
@@ -104,12 +98,12 @@ class AutoDLService:
 
         return raw_bytes, safe_name
 
-    def upload_file_to_dashscope(self, file_path: Path) -> str:
-        """将本地素材上传到 DashScope 临时对象存储，换取公网可访问 URL (带智能压缩与3次重试)"""
+    def upload_file_to_storage(self, file_path: Path) -> str:
+        """将本地素材直传至 Cloudflare R2 对象存储，生成全球可访问的永久 HTTPS 直链"""
         if not file_path.exists():
             raise FileNotFoundError(f"素材文件不存在: {file_path}")
 
-        # 计算 SHA256 缓存
+        # 计算 SHA256 缓存去重
         h = hashlib.sha256()
         with open(file_path, "rb") as f:
             h.update(f.read(1024 * 512))
@@ -119,57 +113,23 @@ class AutoDLService:
             if file_hash in self._upload_cache:
                 return self._upload_cache[file_hash]
 
-        dash_base = self.config.get("dashscope", {}).get("base_url", "https://dashscope.aliyuncs.com/api/v1").rstrip("/")
-        files_url = f"{dash_base}/files"
-
-        # 准备优化后的字节与安全 ASCII 文件名
         upload_bytes, safe_filename = self._prepare_upload_bytes(file_path)
+        remote_key = f"assets/{safe_filename}"
 
-        # 1. POST 上传文件 (带 3 次退避重试)
-        file_id = None
-        last_err = None
-        for attempt in range(1, 4):
-            try:
-                r = requests.post(
-                    files_url,
-                    headers=self.dash_headers(json_body=False),
-                    files={"file": (safe_filename, upload_bytes, "image/jpeg")},
-                    data={"purpose": "file-extract"},
-                    timeout=90
-                )
-                j = r.json()
-                uploaded = (j.get("data") or {}).get("uploaded_files") or []
-                if uploaded:
-                    file_id = uploaded[0]["file_id"]
-                    break
-                else:
-                    raise RuntimeError(f"百炼素材上传返回异常: {j}")
-            except Exception as e:
-                last_err = e
-                print(f"[AutoDLService] 百炼上传第 {attempt} 次失败: {e}，正在重试...")
-                time.sleep(2.0 * attempt)
-
-        if not file_id:
-            raise RuntimeError(f"百炼底牌上传连续 3 次失败: {last_err}")
-
-        # 2. GET 查询公网直链 URL
-        for _ in range(15):
-            try:
-                r2 = requests.get(
-                    f"{files_url}/{file_id}",
-                    headers=self.dash_headers(json_body=False),
-                    timeout=30
-                ).json()
-                public_url = (r2.get("data") or {}).get("url")
-                if public_url:
-                    with self._lock:
-                        self._upload_cache[file_hash] = public_url
-                    return public_url
-            except Exception as e:
-                print(f"[AutoDLService] 查询直链波动: {e}")
-            time.sleep(1.2)
-
-        raise RuntimeError(f"获取公网素材直链超时: {file_path.name}")
+        # 直传 Cloudflare R2
+        try:
+            public_url = r2_storage.upload_bytes(
+                data=upload_bytes,
+                remote_key=remote_key,
+                content_type="image/jpeg"
+            )
+            with self._lock:
+                self._upload_cache[file_hash] = public_url
+            print(f"[AutoDLService] 素材已直传 Cloudflare R2: {safe_filename} -> {public_url}")
+            return public_url
+        except Exception as e:
+            print(f"[AutoDLService] R2 上传失败: {e}")
+            raise RuntimeError(f"Cloudflare R2 素材上传失败: {e}")
 
     # ----------------- 算力接口 -----------------
     def submit_autodl_workflow(self, workflow_id: str, payload: dict) -> str:
@@ -370,15 +330,15 @@ class AutoDLService:
         side_img = assets_dir / "主角_本人业务经理_45度侧身.jpg"
 
         try:
-            # 步骤 1: 上传真人身份底牌
+            # 步骤 1: 上传真人身份底牌至 Cloudflare R2
             with self._lock:
                 job = self.jobs[job_id]
                 job["status"] = "RUNNING"
-                job["step"] = "正在通过百炼高速通道上传真人出镜底牌..."
+                job["step"] = "正在通过 Cloudflare R2 极速通道同步真人出镜底牌..."
                 job["progress"] = 15
 
-            front_url = self.upload_file_to_dashscope(front_img)
-            side_url = self.upload_file_to_dashscope(side_img)
+            front_url = self.upload_file_to_storage(front_img)
+            side_url = self.upload_file_to_storage(side_img)
 
             # 步骤 2: 逐段下发 AutoDL 云端任务
             with self._lock:
@@ -409,13 +369,13 @@ class AutoDLService:
                     scene_filename = Path(scene_fn).name
                     scene_path = assets_dir / scene_filename
                     if scene_path.exists():
-                        scene_url = self.upload_file_to_dashscope(scene_path)
+                        scene_url = self.upload_file_to_storage(scene_path)
                         payload["ref_image_1"] = scene_url
-                        print(f"[AutoDLService] ★ 分镜 {sid} 精准绑定场景底牌成功: {scene_filename} (URL: {scene_url[:50]}...)")
+                        print(f"[AutoDLService] ★ 分镜 {sid} 精准绑定场景底牌 (R2): {scene_filename} (URL: {scene_url})")
                     else:
                         print(f"[AutoDLService] ⚠️ 分镜 {sid} 指定的场景图未在本地找到: {scene_path}")
 
-                print(f"[AutoDLService] 提交分镜 {sid} [时长={dur}s, 人物={'45度侧身' if '侧身' in prompt or seg.get('role') == 'ayong_side' else '正面'}, 场景={'已挂载' if 'ref_image_1' in payload else '纯提示词'}]")
+                print(f"[AutoDLService] 提交分镜 {sid} [时长={dur}s, 人物={'45度侧身' if '侧身' in prompt or seg.get('role') == 'ayong_side' else '正面'}, 场景={'已挂载R2' if 'ref_image_1' in payload else '纯提示词'}]")
                 task_id = self.submit_autodl_workflow(wf_id, payload)
                 with self._lock:
                     job["segments"][i]["task_id"] = task_id
