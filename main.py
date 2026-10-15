@@ -68,4 +68,4 @@ if __name__ == "__main__":
     print(f"🚀 正在启动 {settings.APP_NAME}...")
     print(f"🌐 本地访问地址: http://127.0.0.1:{settings.PORT}")
     print(f"📱 手机局域网访问地址: http://{get_local_ip()}:{settings.PORT}")
-    uvicorn.run("main:app", host=settings.HOST, port=settings.PORT, reload=settings.DEBUG)
+    uvicorn.run("main:app", host=settings.HOST, port=settings.PORT, reload=False)
