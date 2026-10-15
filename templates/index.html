@@ -92,7 +92,7 @@
             border-color: rgba(255, 255, 255, 0.18);
         }
 
-        /* 中央沉浸视口 (未播放或空闲时呈现经典16:9横屏剧场质感，载入竖屏母带时自适应贴合) */
+        /* 中央视口：固定为标准 16:9 横屏剧场画幅，无论播放还是占位，绝不上下撑爆手机屏幕 */
         .viewport-area {
             flex: 1;
             position: relative;
@@ -102,32 +102,31 @@
             justify-content: center;
             overflow: hidden;
             background: transparent;
-            padding: 8px 12px;
-            min-height: 200px;
+            padding: 6px 14px;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .video-player-box {
             width: 100%;
-            height: auto;
-            max-width: 480px;
+            max-width: 460px;
+            aspect-ratio: 16/9;
             position: relative;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
+            background: #09090e;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 32px rgba(0, 0, 0, 0.7);
         }
 
         #masterVideoPlayer {
             width: 100%;
-            height: auto;
-            aspect-ratio: 16/9;
-            max-height: calc(100vh - 330px);
+            height: 100%;
             object-fit: contain;
-            border-radius: 14px;
-            background: #09090d;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-            transition: aspect-ratio 0.3s ease;
+            background: #000;
         }
 
         /* 独立在播放器下方的成片下载按钮 (杜绝遮挡视频画面) */
@@ -567,15 +566,15 @@
 </head>
 <body>
 
-    <!-- 顶部导航栏 (右上角竖向三点菜单：整合历史成片库与正在运行任务) -->
+    <!-- 顶部导航栏 (右上角横向三点主菜单：···) -->
     <header class="top-navbar" style="justify-content: flex-end; position: relative;">
-        <!-- 竖向三个点主菜单按钮 -->
-        <button class="icon-circle-btn" onclick="toggleTopRightMenu()" title="功能菜单" style="font-size: 18px; font-weight: 900; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);">
-            ⋮
+        <!-- 横向三个点主菜单按钮 (···) -->
+        <button class="icon-circle-btn" onclick="toggleTopRightMenu()" title="功能菜单" style="font-size: 20px; font-weight: 900; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); width: 34px; height: 34px; line-height: 1; letter-spacing: 1px;">
+            ···
         </button>
 
-        <!-- 竖向三个点下拉卡片菜单 -->
-        <div id="topRightDropdownMenu" style="display: none; position: absolute; top: 54px; right: 16px; background: rgba(18, 18, 26, 0.98); border: 1px solid rgba(139, 92, 246, 0.45); border-radius: 14px; padding: 6px; box-shadow: 0 12px 36px rgba(0,0,0,0.9); z-index: 100; min-width: 150px; backdrop-filter: blur(20px);">
+        <!-- 横向三个点下拉卡片菜单 -->
+        <div id="topRightDropdownMenu" style="display: none; position: absolute; top: 48px; right: 16px; background: rgba(18, 18, 26, 0.98); border: 1px solid rgba(139, 92, 246, 0.45); border-radius: 14px; padding: 6px; box-shadow: 0 12px 36px rgba(0,0,0,0.9); z-index: 100; min-width: 150px; backdrop-filter: blur(20px);">
             <div onclick="openActiveTasksDrawer()" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; font-size: 13px; font-weight: 700; color: #f1f5f9; cursor: pointer; border-radius: 8px; transition: background 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">
                 <span>⏳ 正在进行任务</span>
                 <span id="activeTasksCountBadge" style="font-size: 10px; background: #fbbf24; color: #000; padding: 1px 6px; border-radius: 9999px; font-weight: 800; display: none;">0</span>
@@ -616,18 +615,17 @@
 
     <!-- 底部即梦输入卡片与发牌栏 -->
     <footer class="bottom-console-wrapper">
-        <!-- 顶部操作栏 (极简无框排布：主角正面/侧身管理 + 场景图加号，彻底去除臃肿背景与边框) -->
-        <div class="input-top-toolbar" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; width: 100%;">
-            <!-- 主角机位与管理区 (纯净头像图标，无外层黑圆和死边框，点击支持编辑/上传，长按/右侧支持删除) -->
+        <!-- 顶部操作栏 (并排紧凑排布：@正面 + @侧面 + 菜单 + 紧跟[＋场景图]，极度顺手协调) -->
+        <div class="input-top-toolbar" style="display: flex; align-items: center; justify-content: flex-start; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; width: 100%;">
+            <!-- 主角机位区与管理三点 -->
             <div id="characterToolbarArea" style="display: flex; align-items: center; gap: 10px;">
-                <!-- 动态由JS渲染主角正面、侧面或空状态添加按钮 -->
             </div>
 
-            <!-- 场景图上传入口与胶囊栏 (彻底移到输入框上方) -->
+            <!-- 场景图上传入口与胶囊栏 (紧跟在侧面头像后面) -->
             <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                <!-- ➕ 场景图加号按钮 (轻量纯净样式) -->
-                <button class="btn-add-scene" onclick="triggerSceneUpload()" title="点击插入场景图，自动生成蓝色图片1/图片2标签" style="background: rgba(14, 165, 233, 0.15); border-color: rgba(56, 189, 248, 0.4); color: #38bdf8; padding: 4px 10px;">
-                    <span style="font-size: 14px; font-weight: 800; line-height: 1;">＋</span>
+                <!-- ➕ 场景图加号按钮 (紧随侧面机位之后，并列排布) -->
+                <button class="btn-add-scene" onclick="triggerSceneUpload()" title="点击插入场景图，自动生成蓝色图片1/图片2标签" style="background: rgba(14, 165, 233, 0.15); border-color: rgba(56, 189, 248, 0.4); color: #38bdf8; padding: 4px 10px; border-radius: 9999px;">
+                    <span style="font-size: 13px; font-weight: 800; line-height: 1;">＋</span>
                     <span>场景图</span>
                 </button>
                 <input type="file" id="sceneFileInput" accept="image/*" multiple style="display: none;" onchange="handleSceneFilesSelected(event)">
