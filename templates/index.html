@@ -995,23 +995,23 @@
                 return;
             }
 
-            // 2. 若已上传主角，直接展示正面与侧身快捷@标签，且支持点击头像直接修改
+            // 2. 若已上传主角，采用经典的上下结构：头像在上、文字在正下方居中，紧凑对齐，绝不横向拖沓
             container.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <!-- 正面 -->
-                    <div style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
-                        <img src="${mainRoleData.frontUrl}" onclick="openAddRoleModal()" title="点击修改主角形象照片" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1.5px solid #a855f7;">
-                        <span onclick="insertTextAtCursor('@阿勇正面 ')" style="font-size: 11px; font-weight: 700; color: #f1f5f9; background: rgba(255,255,255,0.06); padding: 2px 7px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08);" title="点击在输入框插入@阿勇正面">@正面</span>
+                <div style="display: flex; align-items: center; gap: 14px;">
+                    <!-- 正面 (上下垂直对齐) -->
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer;" title="点击头像修改照片，点击文字@正面出镜">
+                        <img src="${mainRoleData.frontUrl}" onclick="openAddRoleModal()" title="点击修改主角形象照片" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 1.5px solid #a855f7; box-shadow: 0 0 8px rgba(168,85,247,0.35); transition: transform 0.15s ease;">
+                        <span onclick="insertTextAtCursor('@阿勇正面 ')" style="font-size: 10px; font-weight: 700; color: #f1f5f9; text-align: center; margin-top: 1px;" title="点击在输入框插入@阿勇正面">@正面</span>
                     </div>
 
-                    <!-- 45°侧身 -->
-                    <div style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
-                        <img src="${mainRoleData.sideUrl || mainRoleData.frontUrl}" onclick="openAddRoleModal()" title="点击修改主角形象照片" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1.5px solid #38bdf8;">
-                        <span onclick="insertTextAtCursor('@阿勇侧面 ')" style="font-size: 11px; font-weight: 600; color: #94a3b8; background: rgba(255,255,255,0.04); padding: 2px 7px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);" title="点击在输入框插入@阿勇侧面">@侧面</span>
+                    <!-- 45°侧身 (上下垂直对齐) -->
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer;" title="点击头像修改照片，点击文字@侧面出镜">
+                        <img src="${mainRoleData.sideUrl || mainRoleData.frontUrl}" onclick="openAddRoleModal()" title="点击修改主角形象照片" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 1.5px solid #38bdf8; box-shadow: 0 0 8px rgba(56,189,248,0.35); transition: transform 0.15s ease;">
+                        <span onclick="insertTextAtCursor('@阿勇侧面 ')" style="font-size: 10px; font-weight: 600; color: #94a3b8; text-align: center; margin-top: 1px;" title="点击在输入框插入@阿勇侧面">@侧面</span>
                     </div>
 
-                    <!-- 编辑管理齿轮 -->
-                    <span onclick="openAddRoleModal()" title="管理主角形象照片" style="font-size: 12px; color: #94a3b8; cursor: pointer; padding: 2px 4px; opacity: 0.7;">⚙️</span>
+                    <!-- 轻量级形象管理齿轮 -->
+                    <span onclick="openAddRoleModal()" title="管理主角形象照片与换图" style="font-size: 14px; color: #94a3b8; cursor: pointer; padding: 2px 4px; opacity: 0.6; transition: opacity 0.2s ease;">⚙️</span>
                 </div>
             `;
         }
