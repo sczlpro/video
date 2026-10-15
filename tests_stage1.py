@@ -36,7 +36,8 @@ def run_tests():
     # 根路由 (前端生产工作台)
     res_root = client.get("/")
     assert res_root.status_code == 200
-    assert "A-Yong Solar Video" in res_root.text
+    assert "数字人" in res_root.text
+    assert "manifest.json" in res_root.text
     assert "scenePillContainer" in res_root.text
     print(f"   ✓ GET / (专业工作台) 响应 200 OK (大小: {len(res_root.text)} 字节，零外部CDN依赖！)")
 
