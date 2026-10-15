@@ -32,20 +32,11 @@ async def upload_local_asset(
         with open(save_path, "wb") as f:
             f.write(content)
 
-        # 若已配置 R2，尝试在后台同步至 R2
-        r2_url = None
-        if settings.is_r2_configured:
-            try:
-                r2_url = r2_storage.upload_file(save_path, f"assets/{clean_filename}")
-            except Exception:
-                pass
-
         return {
             "success": True,
             "filename": clean_filename,
             "category": category,
             "local_url": f"/static/assets/{clean_filename}",
-            "r2_url": r2_url,
             "size_kb": round(len(content) / 1024, 2),
             "message": "素材上传成功，已加入随身素材库！"
         }

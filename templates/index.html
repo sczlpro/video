@@ -569,7 +569,7 @@
     <!-- 顶部导航栏 (右上角横向三点主菜单：···) -->
     <header class="top-navbar" style="justify-content: flex-end; position: relative;">
         <!-- 横向三个点主菜单按钮 (···) -->
-        <button class="icon-circle-btn" onclick="toggleTopRightMenu()" title="功能菜单" style="font-size: 20px; font-weight: 900; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); width: 34px; height: 34px; line-height: 1; letter-spacing: 1px;">
+        <button class="icon-circle-btn" id="btnTopRightMenu" onclick="toggleTopRightMenu(event)" title="功能菜单" style="font-size: 20px; font-weight: 900; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); width: 34px; height: 34px; line-height: 1; letter-spacing: 1px;">
             ···
         </button>
 
@@ -615,23 +615,22 @@
 
     <!-- 底部即梦输入卡片与发牌栏 -->
     <footer class="bottom-console-wrapper">
-        <!-- 顶部操作栏 (并排紧凑排布：@正面 + @侧面 + 菜单 + 紧跟[＋场景图]，极度顺手协调) -->
-        <div class="input-top-toolbar" style="display: flex; align-items: center; justify-content: flex-start; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; width: 100%;">
+        <!-- 顶部操作栏 (统一单行紧凑排布：@正面 + @侧面 + ⋮菜单 + 紧跟[已传缩略图] + 紧跟[＋加号]，绝对顺畅自然) -->
+        <div class="input-top-toolbar" style="display: flex; align-items: center; justify-content: flex-start; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; width: 100%;">
             <!-- 主角机位区与管理三点 -->
-            <div id="characterToolbarArea" style="display: flex; align-items: center; gap: 10px;">
+            <div id="characterToolbarArea" style="display: flex; align-items: center; gap: 8px;">
             </div>
 
-            <!-- 场景图上传入口与胶囊栏 (紧跟在侧面头像后面) -->
+            <!-- 场景图素材栏 (缩略图排在前面，新增加号紧跟在素材后面) -->
             <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                <!-- ➕ 场景图加号按钮 (紧随侧面机位之后，并列排布) -->
-                <button class="btn-add-scene" onclick="triggerSceneUpload()" title="点击插入场景图，自动生成蓝色图片1/图片2标签" style="background: rgba(14, 165, 233, 0.15); border-color: rgba(56, 189, 248, 0.4); color: #38bdf8; padding: 4px 10px; border-radius: 9999px;">
-                    <span style="font-size: 13px; font-weight: 800; line-height: 1;">＋</span>
-                    <span>场景图</span>
+                <!-- 已传场景图缩略图列表 (纯图片小方块+右上角小数字角标，绝不占多余宽度) -->
+                <div id="scenePillContainer" style="display: none; align-items: center; gap: 6px;"></div>
+
+                <!-- ➕ 场景图加号按钮 (排在所有已有素材后面，小巧圆角方块，极度顺眼) -->
+                <button class="btn-add-scene" onclick="triggerSceneUpload()" title="点击添加场景图" style="width: 32px; height: 32px; border-radius: 8px; background: rgba(14, 165, 233, 0.12); border: 1.5px dashed rgba(56, 189, 248, 0.45); color: #38bdf8; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; flex-shrink: 0;">
+                    <span style="font-size: 16px; font-weight: 800; line-height: 1;">＋</span>
                 </button>
                 <input type="file" id="sceneFileInput" accept="image/*" multiple style="display: none;" onchange="handleSceneFilesSelected(event)">
-
-                <!-- 场景图胶囊容器 -->
-                <div id="scenePillContainer" class="scene-pill-container" style="display: none; margin-bottom: 0; padding-bottom: 0; border-bottom: none;"></div>
             </div>
         </div>
 
@@ -1119,7 +1118,7 @@
             event.target.value = "";
         }
 
-        // 6. 渲染即梦同款深空科技蓝胶囊条
+        // 6. 渲染极简场景图微型缩略图 (纯小方块 + 亮蓝色数字角标 + 极简右上角删除，零宽度浪费)
         function renderScenePills() {
             const container = document.getElementById("scenePillContainer");
             if (!container) return;
@@ -1132,10 +1131,19 @@
 
             container.style.display = "flex";
             container.innerHTML = uploadedSceneImages.map((img, idx) => `
-                <div class="img-badge-pill" onclick="insertTextAtCursor('[${img.label}] ')" title="点击在输入框插入 [${img.label}]">
-                    <img src="${img.url}" class="pill-thumb" alt="${img.label}">
-                    <span>${img.label}</span>
-                    <span class="pill-close" onclick="removeSceneImage(${idx}, event)" title="删除此图">✕</span>
+                <div style="position: relative; width: 32px; height: 32px; border-radius: 8px; overflow: hidden; border: 1.5px solid #38bdf8; background: #0c0c12; flex-shrink: 0; box-shadow: 0 0 8px rgba(56,189,248,0.35); cursor: pointer;" onclick="insertTextAtCursor('[${img.label}] ')" title="点击在输入框插入 [${img.label}]">
+                    <!-- 真实图片预览缩略图 -->
+                    <img src="${img.url}" style="width: 100%; height: 100%; object-fit: cover;">
+                    
+                    <!-- 左下角亮蓝微型数字角标 -->
+                    <div style="position: absolute; bottom: 0; left: 0; background: rgba(14,165,233,0.92); color: #fff; font-size: 8px; font-weight: 900; padding: 0 3px; border-radius: 0 4px 0 0; line-height: 1.2;">
+                        ${img.id}
+                    </div>
+
+                    <!-- 右上角微型删除叉号 -->
+                    <div onclick="removeSceneImage(${idx}, event)" title="删除此图" style="position: absolute; top: 0; right: 0; width: 12px; height: 12px; background: rgba(0,0,0,0.75); color: #cbd5e1; font-size: 9px; line-height: 12px; text-align: center; border-radius: 0 0 0 4px; font-weight: 800;">
+                        ✕
+                    </div>
                 </div>
             `).join("");
         }
@@ -1383,18 +1391,20 @@
         // 13. ★ 多任务并发轮询与独立卡片系统 (同时支持多个任务并排展示，互不干扰)
         const activeJobPollers = {};
 
-        function toggleTopRightMenu() {
+        function toggleTopRightMenu(event) {
+            if (event) event.stopPropagation();
             const menu = document.getElementById("topRightDropdownMenu");
             if (menu) {
-                menu.style.display = menu.style.display === "none" ? "block" : "none";
+                const isHidden = menu.style.display === "none" || !menu.style.display;
+                menu.style.display = isHidden ? "block" : "none";
             }
         }
 
-        // 点击页面任意空白处自动关闭右上角三点菜单
+        // 点击页面任意空白处自动关闭右上角横向三点菜单
         document.addEventListener("click", (e) => {
             const menu = document.getElementById("topRightDropdownMenu");
-            const btn = e.target.closest("button");
-            if (menu && menu.style.display === "block" && (!btn || !btn.innerText.includes("⋮"))) {
+            const btn = e.target.closest("#btnTopRightMenu");
+            if (menu && menu.style.display === "block" && !btn) {
                 menu.style.display = "none";
             }
         });
