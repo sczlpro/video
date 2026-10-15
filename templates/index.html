@@ -567,11 +567,23 @@
 </head>
 <body>
 
-    <!-- 顶部导航栏 (已删除左上角无用关闭按钮，保留右上角历史成片入口) -->
-    <header class="top-navbar" style="justify-content: flex-end;">
-        <!-- 🕒 历史成片与任务库按钮 -->
-        <div class="model-selector-pill" onclick="openHistoryDrawer()" style="background: rgba(139, 92, 246, 0.18); border-color: rgba(139, 92, 246, 0.45); padding: 6px 14px; cursor: pointer;" title="查看历史生成成片库">
-            <span style="font-size: 13px; font-weight: 800; color: #c084fc;">🕒 历史成片</span>
+    <!-- 顶部导航栏 (右上角竖向三点菜单：整合历史成片库与正在运行任务) -->
+    <header class="top-navbar" style="justify-content: flex-end; position: relative;">
+        <!-- 竖向三个点主菜单按钮 -->
+        <button class="icon-circle-btn" onclick="toggleTopRightMenu()" title="功能菜单" style="font-size: 18px; font-weight: 900; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);">
+            ⋮
+        </button>
+
+        <!-- 竖向三个点下拉卡片菜单 -->
+        <div id="topRightDropdownMenu" style="display: none; position: absolute; top: 54px; right: 16px; background: rgba(18, 18, 26, 0.98); border: 1px solid rgba(139, 92, 246, 0.45); border-radius: 14px; padding: 6px; box-shadow: 0 12px 36px rgba(0,0,0,0.9); z-index: 100; min-width: 150px; backdrop-filter: blur(20px);">
+            <div onclick="openActiveTasksDrawer()" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; font-size: 13px; font-weight: 700; color: #f1f5f9; cursor: pointer; border-radius: 8px; transition: background 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">
+                <span>⏳ 正在进行任务</span>
+                <span id="activeTasksCountBadge" style="font-size: 10px; background: #fbbf24; color: #000; padding: 1px 6px; border-radius: 9999px; font-weight: 800; display: none;">0</span>
+            </div>
+            <div onclick="openHistoryDrawer()" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; font-size: 13px; font-weight: 700; color: #c084fc; cursor: pointer; border-radius: 8px; transition: background 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">
+                <span>🎬 历史成片库</span>
+                <span id="topHistoryTotalBadge" style="font-size: 10px; background: rgba(139,92,246,0.3); color: #c084fc; padding: 1px 6px; border-radius: 9999px; font-weight: 800;">0</span>
+            </div>
         </div>
     </header>
 
@@ -579,13 +591,28 @@
     <div id="progressCardsContainer" style="position: fixed; top: 68px; right: 24px; display: flex; flex-direction: column; gap: 12px; z-index: 45; pointer-events: none; max-height: calc(100vh - 120px); overflow-y: auto;">
     </div>
 
-    <!-- 中央沉浸视口 (纯净大屏播放器，无遮挡) -->
+    <!-- 中央沉浸视口 (未出片时若有进行中任务展示动态渲染占位，出片后播放母带，无任务时呈现标准16:9剧场) -->
     <main class="viewport-area">
         <div class="video-player-box">
-            <!-- 30 秒成品母带播放器 (支持原生三点菜单极速下载) -->
-            <video id="masterVideoPlayer" controls playsinline></video>
+            <!-- 正在渲染中的动态占位卡片 (杜绝用老历史视频占位) -->
+            <div id="renderingPlaceholder" style="display: none; width: 100%; aspect-ratio: 9/16; max-height: calc(100vh - 300px); background: #0a0a10; border: 1.5px dashed rgba(139, 92, 246, 0.45); border-radius: 16px; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.8);">
+                <div style="width: 56px; height: 56px; border-radius: 50%; border: 3px solid rgba(139,92,246,0.2); border-top-color: #a855f7; animation: spin 1s linear infinite; margin-bottom: 16px;"></div>
+                <div id="placeholderStepText" style="font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 6px;">云端正在调度算力渲染中...</div>
+                <div id="placeholderPercentText" style="font-size: 20px; font-weight: 900; color: #c084fc; margin-bottom: 12px;">25%</div>
+                <div id="placeholderSegsText" style="font-size: 11px; color: #94a3b8; max-width: 240px; line-height: 1.4;"></div>
+            </div>
+
+            <!-- 30 秒成品母带播放器 -->
+            <video id="masterVideoPlayer" controls playsinline style="display: none;"></video>
         </div>
     </main>
+
+    <style>
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
 
     <!-- 底部即梦输入卡片与发牌栏 -->
     <footer class="bottom-console-wrapper">
@@ -810,17 +837,20 @@
         </div>
     </div>
 
-    <!-- 6. 提示词全屏大弹窗查看器 (长文案时手机端编辑极度从容) -->
-    <div class="drawer-modal" id="fullscreenPromptModal" style="z-index: 60;">
-        <div class="confirm-dialog" style="max-width: 580px; width: 94%; max-height: 85vh; display: flex; flex-direction: column; padding: 16px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <span style="font-size: 15px; font-weight: 800; color: #fff;">⛶ 全屏提示词工作台</span>
-                <button class="icon-circle-btn" style="width: 26px; height: 26px; font-size: 11px;" onclick="closeFullscreenPromptModal()">✕</button>
+    <!-- 7. 正在进行中的任务九宫格抽屉 (点击右上角三个点可随时查看所有正在并发跑的任务) -->
+    <div class="drawer-modal" id="activeTasksDrawer">
+        <div class="drawer-sheet" style="max-height: 85vh; display: flex; flex-direction: column; padding: 16px 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 16px; font-weight: 800; color: #fff;">⏳ 正在进行任务</span>
+                    <span id="activeDrawerTotalBadge" style="font-size: 11px; background: rgba(251,191,36,0.2); color:#fbbf24; border: 1px solid rgba(251,191,36,0.4); padding: 2px 8px; border-radius: 9999px; font-weight: 700;">0 个</span>
+                </div>
+                <button class="icon-circle-btn" style="width: 28px; height: 28px; font-size: 12px;" onclick="closeActiveTasksDrawer()">✕</button>
             </div>
-            <textarea id="fullscreenPromptInput" style="flex: 1; min-height: 48vh; width: 100%; background: #111116; border: 1px solid var(--jimeng-border); border-radius: 12px; color: #f1f5f9; font-size: 14px; line-height: 1.6; padding: 12px; outline: none; resize: none; font-family: inherit; margin-bottom: 12px;"></textarea>
-            <button class="btn-generate-main ready" onclick="saveFullscreenPrompt()" style="width: 100%; justify-content: center; padding: 10px;">
-                完成并同步回主屏
-            </button>
+            
+            <div id="activeTasksGridContainer" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 2px;">
+                <div style="text-align: center; padding: 30px; color: #94a3b8; font-size: 12px;">暂无正在运行的任务</div>
+            </div>
         </div>
     </div>
 
@@ -838,14 +868,13 @@
         let currentParsedSegments = [];
 
         window.addEventListener("DOMContentLoaded", async () => {
-            await loadLatestMasterVideo();
-            // 每次打开或刷新页面，输入区与场景图保持纯净，绝不强行塞入历史老图片
             uploadedSceneImages = [];
             currentParsedSegments = [];
             initRoleState();
             renderScenePills();
             syncHighlights();
             await restoreActiveRenderJobs();
+            await loadLatestMasterVideo();
         });
 
         // 页面打开或刷新时，自动恢复当前正在运行的任务卡片
@@ -882,21 +911,32 @@
             }
         }
 
-        // 1. 加载最新成品母带
+        // 1. 加载最新成品母带 (智能与当前进行中任务互斥)
         async function loadLatestMasterVideo() {
+            // 如果当前有正在渲染中的任务，主屏优先展示当前渲染占位，绝不播放以前的老视频！
+            if (Object.keys(activeJobPollers).length > 0) {
+                return;
+            }
+
             try {
                 const res = await fetch("/api/v1/render/latest");
                 const data = await res.json();
+                const videoEl = document.getElementById("masterVideoPlayer");
+                const placeholder = document.getElementById("renderingPlaceholder");
+
                 if (data.has_video) {
-                    const videoEl = document.getElementById("masterVideoPlayer");
-                    videoEl.src = data.video_url;
-                    // 载入真实竖屏视频后，自动调整为自适应比例，避免强制拉伸
-                    videoEl.style.aspectRatio = "9/16";
-                    videoEl.style.maxHeight = "calc(100vh - 290px)";
-                    const dlBtn = document.getElementById("btnDownloadMaster");
-                    if (dlBtn) {
-                        dlBtn.href = data.download_url;
-                        dlBtn.download = data.filename;
+                    if (placeholder) placeholder.style.display = "none";
+                    if (videoEl) {
+                        videoEl.style.display = "block";
+                        videoEl.src = data.video_url;
+                        videoEl.style.aspectRatio = "9/16";
+                        videoEl.style.maxHeight = "calc(100vh - 290px)";
+                    }
+                } else {
+                    if (placeholder) placeholder.style.display = "none";
+                    if (videoEl) {
+                        videoEl.style.display = "block";
+                        videoEl.style.aspectRatio = "16/9";
                     }
                 }
             } catch (e) {
@@ -1345,11 +1385,82 @@
         // 13. ★ 多任务并发轮询与独立卡片系统 (同时支持多个任务并排展示，互不干扰)
         const activeJobPollers = {};
 
+        function toggleTopRightMenu() {
+            const menu = document.getElementById("topRightDropdownMenu");
+            if (menu) {
+                menu.style.display = menu.style.display === "none" ? "block" : "none";
+            }
+        }
+
+        // 点击页面任意空白处自动关闭右上角三点菜单
+        document.addEventListener("click", (e) => {
+            const menu = document.getElementById("topRightDropdownMenu");
+            const btn = e.target.closest("button");
+            if (menu && menu.style.display === "block" && (!btn || !btn.innerText.includes("⋮"))) {
+                menu.style.display = "none";
+            }
+        });
+
+        function updateTopMenuBadges() {
+            const activeCount = Object.keys(activeJobPollers).length;
+            const activeBadge = document.getElementById("activeTasksCountBadge");
+            if (activeBadge) {
+                activeBadge.innerText = activeCount;
+                activeBadge.style.display = activeCount > 0 ? "inline-block" : "none";
+            }
+        }
+
+        function openActiveTasksDrawer() {
+            const menu = document.getElementById("topRightDropdownMenu");
+            if (menu) menu.style.display = "none";
+            document.getElementById("activeTasksDrawer").classList.add("active");
+            renderActiveTasksGrid();
+        }
+
+        function closeActiveTasksDrawer() {
+            document.getElementById("activeTasksDrawer").classList.remove("active");
+        }
+
+        function renderActiveTasksGrid() {
+            const container = document.getElementById("activeTasksGridContainer");
+            const badge = document.getElementById("activeDrawerTotalBadge");
+            const jobs = Object.values(activeJobPollers).map(p => p.lastJob).filter(Boolean);
+            badge.innerText = `${jobs.length} 个`;
+
+            if (jobs.length === 0) {
+                container.innerHTML = `<div style="text-align: center; padding: 30px; color: #94a3b8; font-size: 12px;">暂无正在运行的任务</div>`;
+                return;
+            }
+
+            container.innerHTML = jobs.map(j => `
+                <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(251,191,36,0.3); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 13px; font-weight: 800; color: #fbbf24;">⏳ 渲染中 (${j.progress}%)</span>
+                        <span style="font-size: 11px; color: #94a3b8;">${j.started_at || ''}</span>
+                    </div>
+                    <div style="font-size: 12px; color: #f1f5f9; line-height: 1.4;">${j.step || '云端算力调度中...'}</div>
+                    <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 9999px; overflow: hidden;">
+                        <div style="width: ${j.progress}%; height: 100%; background: linear-gradient(90deg, #fbbf24, #f59e0b);"></div>
+                    </div>
+                </div>
+            `).join("");
+        }
+
         function startJobPolling(jobId, scriptSnippet) {
+            // 切换主屏为正在渲染占位，绝不播放老视频！
+            const videoEl = document.getElementById("masterVideoPlayer");
+            const placeholder = document.getElementById("renderingPlaceholder");
+            if (videoEl) {
+                videoEl.pause();
+                videoEl.style.display = "none";
+            }
+            if (placeholder) {
+                placeholder.style.display = "flex";
+            }
+
             const container = document.getElementById("progressCardsContainer");
             if (!container) return;
 
-            // 检查或创建该任务的独立进度卡片
             let card = document.getElementById(`jobCard_${jobId}`);
             if (!card) {
                 card = document.createElement("div");
@@ -1372,34 +1483,41 @@
                     <div id="segs_${jobId}" style="display: flex; gap: 6px; font-size: 11px; color: #94a3b8; overflow-x: auto;">
                     </div>
                 `;
-                // 新提交的任务插入在最上方
                 container.prepend(card);
             }
 
-            // 清理已存在的同ID计时器
-            if (activeJobPollers[jobId]) {
-                clearInterval(activeJobPollers[jobId]);
+            if (activeJobPollers[jobId] && activeJobPollers[jobId].timer) {
+                clearInterval(activeJobPollers[jobId].timer);
             }
 
-            // 立即查一次
+            activeJobPollers[jobId] = {
+                timer: null,
+                lastJob: null
+            };
+
             checkJobStatusSingle(jobId);
 
-            // 每 25 秒自动轮询该任务
-            activeJobPollers[jobId] = setInterval(async () => {
+            activeJobPollers[jobId].timer = setInterval(async () => {
                 await checkJobStatusSingle(jobId);
             }, 25000);
+
+            updateTopMenuBadges();
         }
 
         function removeJobCard(jobId) {
             if (activeJobPollers[jobId]) {
-                clearInterval(activeJobPollers[jobId]);
+                clearInterval(activeJobPollers[jobId].timer);
                 delete activeJobPollers[jobId];
+                updateTopMenuBadges();
             }
             const card = document.getElementById(`jobCard_${jobId}`);
             if (card) {
                 card.style.opacity = "0";
                 card.style.transform = "translateY(-10px)";
                 setTimeout(() => card.remove(), 300);
+            }
+            if (Object.keys(activeJobPollers).length === 0) {
+                loadLatestMasterVideo();
             }
         }
 
@@ -1408,16 +1526,29 @@
             const percentEl = document.getElementById(`percent_${jobId}`);
             const barEl = document.getElementById(`bar_${jobId}`);
             const segsEl = document.getElementById(`segs_${jobId}`);
-            if (!stepEl || !percentEl || !barEl || !segsEl) return;
 
             try {
                 const res = await fetch(`/api/v1/render/status/${jobId}`);
                 if (!res.ok) return;
                 const job = await res.json();
 
-                stepEl.innerText = job.step || "云端渲染中...";
-                percentEl.innerText = `${job.progress}%`;
-                barEl.style.width = `${job.progress}%`;
+                if (activeJobPollers[jobId]) {
+                    activeJobPollers[jobId].lastJob = job;
+                }
+
+                // 同步更新主屏中央的渲染中占位状态
+                const pStep = document.getElementById("placeholderStepText");
+                const pPercent = document.getElementById("placeholderPercentText");
+                const pSegs = document.getElementById("placeholderSegsText");
+                if (pStep) pStep.innerText = job.step || "云端渲染中...";
+                if (pPercent) pPercent.innerText = `${job.progress}%`;
+                if (pSegs && job.segments) {
+                    pSegs.innerText = `共 ${job.segments.length} 段分镜正在云端并行渲染`;
+                }
+
+                if (stepEl) stepEl.innerText = job.step || "云端渲染中...";
+                if (percentEl) percentEl.innerText = `${job.progress}%`;
+                if (barEl) barEl.style.width = `${job.progress}%`;
 
                 const statusMap = {
                     "RUNNING": "渲染中",
@@ -1428,7 +1559,7 @@
                     "UNKNOWN": "同步中"
                 };
 
-                if (job.segments && job.segments.length > 0) {
+                if (segsEl && job.segments && job.segments.length > 0) {
                     segsEl.innerHTML = job.segments.map(s => {
                         let stText = statusMap[s.status] || s.status;
                         let color = s.status === "SUCCESS" ? "#10b981" : (s.status === "RUNNING" ? "#fbbf24" : "#94a3b8");
@@ -1438,29 +1569,34 @@
 
                 if (job.status === "COMPLETED") {
                     if (activeJobPollers[jobId]) {
-                        clearInterval(activeJobPollers[jobId]);
+                        clearInterval(activeJobPollers[jobId].timer);
                         delete activeJobPollers[jobId];
+                        updateTopMenuBadges();
                     }
 
-                    stepEl.innerHTML = "<span style='color:#10b981;'>🎉 成品母带已出片！</span>";
-                    percentEl.innerText = "100%";
-                    barEl.style.width = "100%";
+                    if (stepEl) stepEl.innerHTML = "<span style='color:#10b981;'>🎉 成品母带已出片！</span>";
+                    if (percentEl) percentEl.innerText = "100%";
+                    if (barEl) barEl.style.width = "100%";
 
-                    // 载入中央播放器播放最新成片
+                    // 隐藏中央占位，无缝切回播放器亮屏起播最新成片
                     const videoEl = document.getElementById("masterVideoPlayer");
+                    const placeholder = document.getElementById("renderingPlaceholder");
+                    if (placeholder) placeholder.style.display = "none";
                     if (videoEl && job.video_url) {
+                        videoEl.style.display = "block";
                         videoEl.src = job.video_url;
+                        videoEl.style.aspectRatio = "9/16";
                         videoEl.play().catch(e => console.log("Auto play prevented", e));
                     }
 
-                    // 成片出炉 3 秒后优雅淡出收起该卡片
                     setTimeout(() => { removeJobCard(jobId); }, 3000);
                 } else if (job.status === "FAILED") {
                     if (activeJobPollers[jobId]) {
-                        clearInterval(activeJobPollers[jobId]);
+                        clearInterval(activeJobPollers[jobId].timer);
                         delete activeJobPollers[jobId];
+                        updateTopMenuBadges();
                     }
-                    stepEl.innerHTML = `<span style='color:#ef4444;'>⚠️ ${job.error || '云端同步中断'}</span>`;
+                    if (stepEl) stepEl.innerHTML = `<span style='color:#ef4444;'>⚠️ ${job.error || '云端同步中断'}</span>`;
                 }
             } catch (err) {
                 console.error(`轮询任务 ${jobId} 异常:`, err);
