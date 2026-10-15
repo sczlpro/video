@@ -973,19 +973,24 @@
                 return;
             }
 
-            // 2. 若已上传主角，纯粹双头像上下对齐，点击头像即可修改，完全剔除多余设置齿轮
+            // 2. 若已上传主角：点击头像或文字一律插入输入框；修改/清空形象彻底移入右侧竖向三点菜单（⋮）
             container.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 16px;">
-                    <!-- 正面 (头像在上、文字在下，点击头像即改图，点击文字即@出镜) -->
-                    <div style="display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer;" title="点击头像更换照片，点击文字@正面出镜">
-                        <img src="${mainRoleData.frontUrl}" onclick="openAddRoleModal()" title="点击修改主角正面照片" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 1.5px solid #a855f7; box-shadow: 0 0 8px rgba(168,85,247,0.35); transition: transform 0.15s ease;">
-                        <span onclick="insertTextAtCursor('@阿勇正面 ')" style="font-size: 10px; font-weight: 700; color: #f1f5f9; text-align: center; margin-top: 1px;" title="点击在输入框插入@阿勇正面">@正面</span>
+                <div style="display: flex; align-items: center; gap: 14px;">
+                    <!-- 正面 (点击头像或点击文字，一律插入 @正面，绝不误触弹窗) -->
+                    <div onclick="insertTextAtCursor('@正面 ')" style="display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer;" title="点击插入 @正面">
+                        <img src="${mainRoleData.frontUrl}" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 1.5px solid #a855f7; box-shadow: 0 0 8px rgba(168,85,247,0.35);">
+                        <span style="font-size: 10px; font-weight: 700; color: #f1f5f9; text-align: center; margin-top: 1px;">@正面</span>
                     </div>
 
-                    <!-- 45°侧身 (头像在上、文字在下，点击头像即改图，点击文字即@出镜) -->
-                    <div style="display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer;" title="点击头像更换照片，点击文字@侧面出镜">
-                        <img src="${mainRoleData.sideUrl || mainRoleData.frontUrl}" onclick="openAddRoleModal()" title="点击修改主角侧身照片" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 1.5px solid #38bdf8; box-shadow: 0 0 8px rgba(56,189,248,0.35); transition: transform 0.15s ease;">
-                        <span onclick="insertTextAtCursor('@阿勇侧面 ')" style="font-size: 10px; font-weight: 600; color: #94a3b8; text-align: center; margin-top: 1px;" title="点击在输入框插入@阿勇侧面">@侧面</span>
+                    <!-- 45°侧身 (点击头像或点击文字，一律插入 @侧面，绝不误触弹窗) -->
+                    <div onclick="insertTextAtCursor('@侧面 ')" style="display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer;" title="点击插入 @侧面">
+                        <img src="${mainRoleData.sideUrl || mainRoleData.frontUrl}" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 1.5px solid #38bdf8; box-shadow: 0 0 8px rgba(56,189,248,0.35);">
+                        <span style="font-size: 10px; font-weight: 600; color: #94a3b8; text-align: center; margin-top: 1px;">@侧面</span>
+                    </div>
+
+                    <!-- 竖向三点菜单 (⋮)：点击才弹出修改形象/换图/清空弹窗 -->
+                    <div onclick="openAddRoleModal()" title="设置与更换主角形象照片" style="width: 24px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #94a3b8; font-size: 16px; font-weight: 900; opacity: 0.75; transition: opacity 0.2s ease;">
+                        ⋮
                     </div>
                 </div>
             `;
@@ -1170,12 +1175,12 @@
         function renderHighlights(text) {
             if (!text) return "";
             let safe = escapeHtml(text);
-            // 1. 匹配 [图片N], 图片N, [Picture N] 等场景占位符，纯净科技蓝高亮 (无多余图标)
+            // 1. 匹配 [图片N], 图片N, [Picture N] 等场景占位符，纯净科技蓝高亮
             safe = safe.replace(/(?:\[)?(?:图片|图|Picture|pic)\s*\d+(?:\])?/gi, function(match) {
                 return `<span class="hl-scene-tag">${match}</span>`;
             });
-            // 2. 匹配 @阿勇 角色占位符，纯净淡紫色高亮 (无多余图标)
-            safe = safe.replace(/@阿勇[^\s]*/g, function(match) {
+            // 2. 匹配 @正面, @侧面, @主角正面, @主角侧面, @阿勇 等角色占位符，纯净淡紫色高亮
+            safe = safe.replace(/@(正面|侧面|主角正面|主角侧面|主角|阿勇[^\s]*)/g, function(match) {
                 return `<span class="hl-role-tag">${match}</span>`;
             });
             // 保留末尾换行空间避免光标高度抖动
@@ -1260,14 +1265,14 @@
 
         // 11. 发牌确认 (打开时实时解析分镜清单与图片插槽)
         async function openConfirmDialog() {
-            const btn = document.getElementById("btnSubmitMain");
-            if (!btn.classList.contains("ready")) return;
+            const promptText = document.getElementById("promptInput").value.trim();
+            if (!promptText) {
+                alert("请先输入或粘贴分镜台词！");
+                return;
+            }
 
-            document.getElementById("confirmCheck").checked = false;
-            document.getElementById("btnExecuteReal").disabled = true;
             document.getElementById("confirmModal").classList.add("active");
 
-            const promptText = document.getElementById("promptInput").value;
             const listEl = document.getElementById("modalSegmentsList");
             listEl.style.display = "block";
             listEl.innerHTML = "<div style='color:#94a3b8;'>⏳ 正在智能解析各镜头节拍与场景图片...</div>";
@@ -1293,7 +1298,7 @@
                                 <b style="color:#c084fc;">镜${s.id}</b> (${s.time_range || s.duration + 's'}): ${s.dialogue ? s.dialogue.substring(0, 16) + '...' : (s.prompt ? s.prompt.substring(0, 16) + '...' : '')}
                             </span>
                             <span style="color:#38bdf8; white-space:nowrap;">
-                                👤阿勇 (${s.role === 'ayong_side' ? '侧身' : '正面'})
+                                👤主角 (${s.role === 'ayong_side' ? '侧身' : '正面'})
                                 ${s.scene_image ? ' · <span style=\"color:#38bdf8; font-weight:700;\">🖼️ ' + (s.scene_label || '场景图') + '</span>' : ' · <span style=\"color:#38bdf8; font-weight:600;\">🎬 纯文字生成动态场景</span>'}
                             </span>
                         </div>
@@ -1309,10 +1314,6 @@
             }
         }
         function closeConfirmDialog() { document.getElementById("confirmModal").classList.remove("active"); }
-        function toggleConfirmBtn() {
-            const c = document.getElementById("confirmCheck").checked;
-            document.getElementById("btnExecuteReal").disabled = !c;
-        }
 
         // 12. 执行提交并开启轮询
         async function executeSubmitReal() {
