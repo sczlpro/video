@@ -396,31 +396,16 @@
             color: #ffffff;
         }
 
-        /* 场景图占位符高亮胶囊 (纯净科技蓝高亮，无多余图标) */
+        /* 场景图占位符高亮 (纯文本高亮，零边框内边距偏移，保证光标绝对精准同步) */
         .hl-scene-tag {
-            display: inline;
             color: #38bdf8 !important;
-            background: rgba(14, 165, 233, 0.22);
-            border: 1px solid #38bdf8;
-            border-radius: 4px;
-            padding: 1px 3px;
             font-weight: 800;
-            font-size: inherit;
-            line-height: inherit;
-            box-shadow: 0 0 8px rgba(56, 189, 248, 0.45);
         }
 
-        /* 角色@高亮胶囊 (纯净淡紫高亮，无多余图标) */
+        /* 角色@高亮 (纯文本高亮，零边框内边距偏移，保证光标绝对精准同步) */
         .hl-role-tag {
-            display: inline;
             color: #c084fc !important;
-            background: rgba(168, 85, 247, 0.18);
-            border: 1px solid #a855f7;
-            border-radius: 4px;
-            padding: 1px 3px;
             font-weight: 700;
-            font-size: inherit;
-            line-height: inherit;
         }
 
         .status-pill-row {
@@ -696,12 +681,11 @@
         </div>
     </div>
 
-    <!-- 2. ★ 极简算力确认弹窗 (仅显示成片时长、预估扣费、分镜列表与确认按钮) -->
+    <!-- 2. ★ 极简算力确认弹窗 (去标题、去啰嗦图标、极简确认提交) -->
     <div class="drawer-modal" id="confirmModal">
         <div class="confirm-dialog" style="max-width: 440px; padding: 18px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <span style="font-size: 15px; font-weight: 800; color: #fff;">🚀 确认提交出片</span>
-                <button class="icon-circle-btn" style="width: 26px; height: 26px; font-size: 11px;" onclick="closeConfirmDialog()">✕</button>
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
+                <button class="icon-circle-btn" style="width: 24px; height: 24px; font-size: 11px;" onclick="closeConfirmDialog()">✕</button>
             </div>
 
             <!-- 核心数据看板：时长与费用 -->
@@ -722,7 +706,7 @@
             </div>
 
             <button class="btn-generate-main ready" id="btnExecuteReal" onclick="executeSubmitReal()" style="width: 100%; justify-content: center; padding: 11px; font-size: 14px; border-radius: 10px;">
-                🚀 确认提交生成出片
+                确认提交
             </button>
         </div>
     </div>
