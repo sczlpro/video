@@ -21,11 +21,34 @@ def generate_uuid() -> str:
     """生成唯一标识码"""
     return uuid.uuid4().hex
 
+class User(Base):
+    """用户成员表 (白名单席位隔离)"""
+    __tablename__ = "users"
+
+    id = Column(String(64), primary_key=True, default=generate_uuid)
+    username = Column(String(64), unique=True, nullable=False, doc="成员唯一英文代号: songyong / wufengcheng / yuanyuan")
+    name = Column(String(64), nullable=False, doc="显示中文姓名: 宋勇 / 吴封成 / 源源")
+    password_hash = Column(String(128), nullable=False, doc="密码哈希 (默认88888888)")
+    role_front_url = Column(Text, nullable=True, doc="专属主角正面特写照")
+    role_side_url = Column(Text, nullable=True, doc="专属主角45度侧身照")
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "username": self.username,
+            "name": self.name,
+            "role_front_url": self.role_front_url,
+            "role_side_url": self.role_side_url
+        }
+
 class Project(Base):
     """短视频项目主表"""
     __tablename__ = "projects"
 
     id = Column(String(64), primary_key=True, default=generate_uuid)
+    owner = Column(String(64), default="songyong", doc="所属成员: songyong/wufengcheng/yuanyuan")
     title = Column(String(255), nullable=False, doc="选题标题")
     category = Column(String(64), nullable=False, doc="业务线: 户用重庆 / 工商业川渝")
     hook_type = Column(String(64), nullable=True, doc="开门Hook风格 (7大风格之一)")

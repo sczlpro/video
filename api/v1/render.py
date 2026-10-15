@@ -23,6 +23,7 @@ class ParsePreviewRequest(BaseModel):
 
 class RenderSubmitRequest(BaseModel):
     prompt: Optional[str] = Field(default="", description="从豆包复制的分镜提示词、台词或完整JSON计划")
+    owner: str = Field(default="songyong", description="所属成员代号: songyong / wufengcheng / yuanyuan")
     segments: Optional[List[dict]] = Field(default=None, description="已定制场景图的分镜列表")
     duration: int = Field(default=30, description="成片目标时长 (秒)")
     mode: str = Field(default="cloud", description="渲染模式: cloud (AutoDL真实算力) / mock (本地极速模拟)")
@@ -420,12 +421,12 @@ def get_latest_master_video():
     return {"has_video": False}
 
 @router.get("/history", summary="获取所有历史成片母带列表")
-def get_render_history(db: Session = Depends(get_db)):
+def get_render_history(owner: Optional[str] = None, db: Session = Depends(get_db)):
     """
     纯净历史成片库：
     1. 只展示真正已生成、可播放、可下载的【成品母带】；
-    2. 自动过滤掉无成片的中间过程记录与废弃占位，保证列表干脆清爽；
-    3. 名称强制统一为【提交成功时间戳】，杜绝重复雷同名字。
+    2. 支持按成员 owner (songyong/wufengcheng/yuanyuan) 隔离筛选；
+    3. 自动过滤掉无成片的中间过程记录与废弃占位，保证列表干脆清爽。
     """
     videos_dir = settings.BASE_DIR / "static" / "videos"
     items = []
@@ -433,7 +434,10 @@ def get_render_history(db: Session = Depends(get_db)):
 
     # 1. 扫描 SQLite 数据库中已有成片母带的项目
     try:
-        projects = db.query(Project).filter(Project.final_video_url.isnot(None)).order_by(Project.created_at.desc()).all()
+        q = db.query(Project).filter(Project.final_video_url.isnot(None))
+        if owner and owner != "all":
+            q = q.filter(Project.owner == owner)
+        projects = q.order_by(Project.created_at.desc()).all()
         for p in projects:
             video_url = p.final_video_url
             if not video_url or video_url in seen_urls:
@@ -460,6 +464,7 @@ def get_render_history(db: Session = Depends(get_db)):
 
             items.append({
                 "project_id": p.id,
+                "owner": getattr(p, "owner", "songyong") or "songyong",
                 "title": timestamp_title,
                 "script_snippet": snippet,
                 "status": "COMPLETED",
@@ -476,8 +481,8 @@ def get_render_history(db: Session = Depends(get_db)):
     except Exception as e:
         print(f"[RenderHistory] 读取数据库成片异常: {e}")
 
-    # 2. 补漏：扫描 videos 目录下未入库或老版本的成片母带
-    if videos_dir.exists():
+    # 2. 补漏：扫描 videos 目录下未入库或老版本的成片母带 (当未指定 owner 或看全部时展示)
+    if (not owner or owner == "all") and videos_dir.exists():
         for f in videos_dir.glob("*.mp4"):
             if f.name.startswith("concat_"):
                 continue
@@ -625,6 +630,7 @@ def submit_render_job(req: RenderSubmitRequest, db: Session = Depends(get_db)):
 
     project = Project(
         id=project_id,
+        owner=req.owner or "songyong",
         title=project_title,
         category="COMMERCIAL_SC_CQ",
         full_script=req.prompt[:500],

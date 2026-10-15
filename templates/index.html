@@ -575,15 +575,22 @@
 </head>
 <body>
 
-    <!-- 顶部导航栏 (右上角横向三点主菜单：···) -->
-    <header class="top-navbar" style="justify-content: flex-end; position: relative;">
-        <!-- 横向三个点主菜单按钮 (···) -->
+    <!-- 顶部导航栏 (左侧当前成员席位身份 + 右上角横向三点主菜单) -->
+    <header class="top-navbar" style="justify-content: space-between; position: relative;">
+        <!-- 左侧当前席位身份徽标 (点击可切换成员或修改密码) -->
+        <div onclick="openMemberSwitchModal()" style="display: flex; align-items: center; gap: 6px; cursor: pointer; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 9999px;" title="点击切换席位或修改密码">
+            <span style="font-size: 13px;">👤</span>
+            <span id="currentMemberNameLabel" style="font-size: 12px; font-weight: 800; color: #f1f5f9;">宋勇</span>
+            <span style="font-size: 9px; color: #a855f7; border: 1px solid rgba(168,85,247,0.4); border-radius: 4px; padding: 0 4px;">席位</span>
+        </div>
+
+        <!-- 右侧横向三个点主菜单按钮 (···) -->
         <button class="icon-circle-btn" id="btnTopRightMenu" onclick="toggleTopRightMenu(event)" title="功能菜单" style="font-size: 20px; font-weight: 900; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); width: 34px; height: 34px; line-height: 1; letter-spacing: 1px;">
             ···
         </button>
 
         <!-- 横向三个点下拉卡片菜单 -->
-        <div id="topRightDropdownMenu" style="display: none; position: absolute; top: 48px; right: 16px; background: rgba(18, 18, 26, 0.98); border: 1px solid rgba(139, 92, 246, 0.45); border-radius: 14px; padding: 6px; box-shadow: 0 12px 36px rgba(0,0,0,0.9); z-index: 100; min-width: 150px; backdrop-filter: blur(20px);">
+        <div id="topRightDropdownMenu" style="display: none; position: absolute; top: 48px; right: 16px; background: rgba(18, 18, 26, 0.98); border: 1px solid rgba(139, 92, 246, 0.45); border-radius: 14px; padding: 6px; box-shadow: 0 12px 36px rgba(0,0,0,0.9); z-index: 100; min-width: 160px; backdrop-filter: blur(20px);">
             <div onclick="openActiveTasksDrawer()" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; font-size: 13px; font-weight: 700; color: #f1f5f9; cursor: pointer; border-radius: 8px; transition: background 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">
                 <span>⏳ 正在进行任务</span>
                 <span id="activeTasksCountBadge" style="font-size: 10px; background: #fbbf24; color: #000; padding: 1px 6px; border-radius: 9999px; font-weight: 800; display: none;">0</span>
@@ -591,6 +598,12 @@
             <div onclick="openHistoryDrawer()" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; font-size: 13px; font-weight: 700; color: #c084fc; cursor: pointer; border-radius: 8px; transition: background 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">
                 <span>🎬 历史成片库</span>
                 <span id="topHistoryTotalBadge" style="font-size: 10px; background: rgba(139,92,246,0.3); color: #c084fc; padding: 1px 6px; border-radius: 9999px; font-weight: 800;">0</span>
+            </div>
+            <div onclick="openChangePwdModal()" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; font-size: 13px; font-weight: 700; color: #94a3b8; cursor: pointer; border-radius: 8px; border-top: 1px solid rgba(255,255,255,0.06); margin-top: 4px;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">
+                <span>🔑 修改我的密码</span>
+            </div>
+            <div onclick="logoutMember()" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; font-size: 13px; font-weight: 700; color: #ef4444; cursor: pointer; border-radius: 8px;" onmouseover="this.style.background='rgba(239,68,68,0.1)'" onmouseout="this.style.background='transparent'">
+                <span>🚪 退出当前席位</span>
             </div>
         </div>
     </header>
@@ -744,6 +757,61 @@
         </div>
     </div>
 
+    <!-- 0. 成员身份登录与席位激活弹窗 (白名单硬隔离：仅限宋勇、吴封成、源源) -->
+    <div class="drawer-modal" id="loginModal" style="z-index: 2000; align-items: center; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px);">
+        <div class="confirm-dialog" style="max-width: 380px; width: 90%; padding: 22px; border: 1.5px solid rgba(139, 92, 246, 0.5); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.95);">
+            <div style="text-align: center; margin-bottom: 16px;">
+                <div style="font-size: 32px; margin-bottom: 6px;">👤</div>
+                <div style="font-size: 17px; font-weight: 900; color: #fff;">成员工作席位认证</div>
+                <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">本系统仅限团队指定成员内部使用</div>
+            </div>
+
+            <!-- 成员单选卡片 -->
+            <div style="font-size: 12px; font-weight: 700; color: #cbd5e1; margin-bottom: 8px;">请选择你的席位身份：</div>
+            <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                <div class="member-select-pill active" id="pill_songyong" onclick="selectLoginMember('songyong', '宋勇')" style="flex: 1; text-align: center; padding: 10px 4px; background: rgba(139,92,246,0.25); border: 1.5px solid #a855f7; border-radius: 10px; cursor: pointer; color: #fff; font-weight: 800; font-size: 13px;">
+                    宋勇
+                </div>
+                <div class="member-select-pill" id="pill_wufengcheng" onclick="selectLoginMember('wufengcheng', '吴封成')" style="flex: 1; text-align: center; padding: 10px 4px; background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,255,255,0.12); border-radius: 10px; cursor: pointer; color: #94a3b8; font-weight: 700; font-size: 13px;">
+                    吴封成
+                </div>
+                <div class="member-select-pill" id="pill_yuanyuan" onclick="selectLoginMember('yuanyuan', '源源')" style="flex: 1; text-align: center; padding: 10px 4px; background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,255,255,0.12); border-radius: 10px; cursor: pointer; color: #94a3b8; font-weight: 700; font-size: 13px;">
+                    源源
+                </div>
+            </div>
+
+            <div style="margin-bottom: 18px;">
+                <label style="font-size: 12px; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 6px;">席位密码 (初始默认: 88888888)：</label>
+                <input type="password" id="inputLoginPassword" placeholder="请输入8位席位密码" value="88888888" style="width: 100%; padding: 10px 14px; background: #0c0c12; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-size: 14px; outline: none; box-sizing: border-box;">
+            </div>
+
+            <button onclick="submitMemberLogin()" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); border: none; border-radius: 10px; color: #fff; font-size: 14px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 15px rgba(139,92,246,0.5);">
+                进入我的专属生产线
+            </button>
+        </div>
+    </div>
+
+    <!-- 0.1 修改个人密码模态框 -->
+    <div class="drawer-modal" id="changePwdModal" style="z-index: 1500; align-items: center;">
+        <div class="confirm-dialog" style="max-width: 360px; width: 90%; padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <span style="font-size: 15px; font-weight: 800; color: #fff;">🔑 修改席位密码</span>
+                <button class="icon-circle-btn" style="width: 26px; height: 26px; font-size: 11px;" onclick="closeChangePwdModal()">✕</button>
+            </div>
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 11px; color: #94a3b8; display: block; margin-bottom: 4px;">当前原密码：</label>
+                <input type="password" id="inputOldPwd" placeholder="输入当前使用的密码" style="width: 100%; padding: 9px 12px; background: #0c0c12; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; color: #fff; font-size: 13px; outline: none; box-sizing: border-box;">
+            </div>
+            <div style="margin-bottom: 16px;">
+                <label style="font-size: 11px; color: #94a3b8; display: block; margin-bottom: 4px;">设置新密码：</label>
+                <input type="password" id="inputNewPwd" placeholder="输入新密码 (请牢记)" style="width: 100%; padding: 9px 12px; background: #0c0c12; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; color: #fff; font-size: 13px; outline: none; box-sizing: border-box;">
+            </div>
+            <button onclick="submitChangePassword()" style="width: 100%; padding: 11px; background: #8b5cf6; border: none; border-radius: 8px; color: #fff; font-size: 13px; font-weight: 800; cursor: pointer;">
+                确认修改密码
+            </button>
+        </div>
+    </div>
+
     <!-- 3. 主角形象设置与修改模态框 (支持上传/修改正面照与45°侧身照，支持删除) -->
     <div class="drawer-modal" id="addRoleModal">
         <div class="confirm-dialog" style="max-width: 440px; width: 92%; padding: 18px;">
@@ -805,7 +873,14 @@
                     <span style="font-size: 16px; font-weight: 800; color: #fff;">🎬 历史成片库</span>
                     <span id="historyTotalBadge" style="font-size: 11px; background: rgba(139,92,246,0.25); color:#c084fc; border: 1px solid rgba(139,92,246,0.4); padding: 2px 8px; border-radius: 9999px; font-weight: 700;">0 条</span>
                 </div>
-                <button class="icon-circle-btn" style="width: 28px; height: 28px; font-size: 12px;" onclick="closeHistoryDrawer()">✕</button>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <!-- 个人 / 团队切换标签 -->
+                    <select id="historyFilterScope" onchange="loadRenderHistory()" style="background: #111118; border: 1px solid rgba(255,255,255,0.15); color: #cbd5e1; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; outline: none;">
+                        <option value="mine">只看我的成片</option>
+                        <option value="all">查看全部成片</option>
+                    </select>
+                    <button class="icon-circle-btn" style="width: 28px; height: 28px; font-size: 12px;" onclick="closeHistoryDrawer()">✕</button>
+                </div>
             </div>
             
             <!-- 手机端标准双列沉浸画廊 (2列并排，每列宽度充裕，阿勇全身与周围场景100%全景展现，告别截头截身) -->
@@ -876,18 +951,19 @@
         window.addEventListener("DOMContentLoaded", async () => {
             uploadedSceneImages = [];
             currentParsedSegments = [];
+            checkMemberAuth();
             initRoleState();
             renderScenePills();
             syncHighlights();
             await restoreActiveRenderJobs();
             await loadLatestMasterVideo();
-            // 页面一打开，静默同步一次右上角成片数量
             syncHistoryTotalCount();
         });
 
         async function syncHistoryTotalCount() {
             try {
-                const res = await fetch("/api/v1/render/history");
+                const owner = currentMember ? currentMember.username : "songyong";
+                const res = await fetch(`/api/v1/render/history?owner=${owner}`);
                 const data = await res.json();
                 const items = data.items || [];
                 const topBadge = document.getElementById("topHistoryTotalBadge");
@@ -982,20 +1058,164 @@
             document.getElementById("modalCostSpan").innerText = m === "cloud" ? `¥${currentCost.toFixed(2)}` : "¥0.00 (免费测试)";
         }
 
-        // 4. ★ 纯净主角管理体系 (默认空状态加号/已上传主角卡片)
+        // ================= ★ 成员身份认证与专属席位隔离系统 (宋勇 / 吴封成 / 源源) =================
+        let currentMember = {
+            username: "songyong",
+            name: "宋勇"
+        };
+        let selectedLoginUsername = "songyong";
+        let selectedLoginName = "宋勇";
+
+        function checkMemberAuth() {
+            const saved = localStorage.getItem("dsh_current_member");
+            if (saved) {
+                try {
+                    currentMember = JSON.parse(saved);
+                    document.getElementById("currentMemberNameLabel").innerText = currentMember.name;
+                    document.getElementById("loginModal").classList.remove("active");
+                    return true;
+                } catch(e) {}
+            }
+            // 未登录时强制弹出登录框
+            document.getElementById("loginModal").classList.add("active");
+            return false;
+        }
+
+        function selectLoginMember(username, name) {
+            selectedLoginUsername = username;
+            selectedLoginName = name;
+            document.querySelectorAll(".member-select-pill").forEach(el => {
+                el.style.background = "rgba(255,255,255,0.05)";
+                el.style.borderColor = "rgba(255,255,255,0.12)";
+                el.style.color = "#94a3b8";
+            });
+            const pill = document.getElementById(`pill_${username}`);
+            if (pill) {
+                pill.style.background = "rgba(139,92,246,0.25)";
+                pill.style.borderColor = "#a855f7";
+                pill.style.color = "#fff";
+            }
+        }
+
+        async function submitMemberLogin() {
+            const pwd = document.getElementById("inputLoginPassword").value.trim();
+            if (!pwd) {
+                alert("请输入席位密码！");
+                return;
+            }
+
+            try {
+                const res = await fetch("/api/v1/auth/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        username: selectedLoginUsername,
+                        password: pwd
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    currentMember = {
+                        username: data.user.username,
+                        name: data.user.name
+                    };
+                    localStorage.setItem("dsh_current_member", JSON.stringify(currentMember));
+                    document.getElementById("currentMemberNameLabel").innerText = currentMember.name;
+                    document.getElementById("loginModal").classList.remove("active");
+
+                    // 读取该成员绑定的专属形象
+                    mainRoleData = {
+                        hasRole: !!(data.user.role_front_url || data.user.role_side_url),
+                        frontUrl: data.user.role_front_url || "",
+                        sideUrl: data.user.role_side_url || ""
+                    };
+                    renderCharacterToolbar();
+                    syncHistoryTotalCount();
+                } else {
+                    alert("登录失败: " + (data.detail || "密码错误"));
+                }
+            } catch(e) {
+                alert("登录异常: " + e);
+            }
+        }
+
+        function openMemberSwitchModal() {
+            selectLoginMember(currentMember.username, currentMember.name);
+            document.getElementById("loginModal").classList.add("active");
+        }
+
+        function logoutMember() {
+            if (!confirm(`确定退出【${currentMember.name}】的席位吗？`)) return;
+            localStorage.removeItem("dsh_current_member");
+            location.reload();
+        }
+
+        function openChangePwdModal() {
+            const menu = document.getElementById("topRightDropdownMenu");
+            if (menu) menu.style.display = "none";
+            document.getElementById("inputOldPwd").value = "";
+            document.getElementById("inputNewPwd").value = "";
+            document.getElementById("changePwdModal").classList.add("active");
+        }
+        function closeChangePwdModal() {
+            document.getElementById("changePwdModal").classList.remove("active");
+        }
+
+        async function submitChangePassword() {
+            const oldP = document.getElementById("inputOldPwd").value.trim();
+            const newP = document.getElementById("inputNewPwd").value.trim();
+            if (!oldP || !newP) {
+                alert("请完整填写原密码与新密码！");
+                return;
+            }
+            if (newP.length < 6) {
+                alert("新密码长度不能少于6位！");
+                return;
+            }
+
+            try {
+                const res = await fetch("/api/v1/auth/change-password", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        username: currentMember.username,
+                        old_password: oldP,
+                        new_password: newP
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert("🎉 " + data.message);
+                    closeChangePwdModal();
+                } else {
+                    alert("修改失败: " + (data.detail || "原密码错误"));
+                }
+            } catch(e) {
+                alert("修改异常: " + e);
+            }
+        }
+
+        // 4. ★ 纯净主角管理体系 (每个成员各自独立，保存在数据库和本地)
         let mainRoleData = {
             hasRole: true,
             frontUrl: "/static/assets/主角_本人业务经理_正面特写.jpg",
             sideUrl: "/static/assets/主角_本人业务经理_45度侧身.jpg"
         };
 
-        // 从本地存储读取用户是否自定义过主角形象
+        // 从本地存储读取当前成员是否自定义过主角形象
         function initRoleState() {
-            const saved = localStorage.getItem("ayong_custom_role");
+            const memberKey = `role_${currentMember ? currentMember.username : 'songyong'}`;
+            const saved = localStorage.getItem(memberKey);
             if (saved) {
                 try {
                     mainRoleData = JSON.parse(saved);
                 } catch(e) {}
+            } else if (currentMember && currentMember.username !== "songyong") {
+                mainRoleData = {
+                    hasRole: false,
+                    frontUrl: "",
+                    sideUrl: ""
+                };
             }
             renderCharacterToolbar();
         }
@@ -1077,7 +1297,21 @@
                         mainRoleData.sideUrl = data.local_url;
                         document.getElementById("previewRoleSide").src = data.local_url;
                     }
-                    localStorage.setItem("ayong_custom_role", JSON.stringify(mainRoleData));
+                    localStorage.setItem(`role_${currentMember.username}`, JSON.stringify(mainRoleData));
+                    
+                    // 同步到服务端数据库，三个人手机各自永久保存
+                    try {
+                        await fetch("/api/v1/auth/update-role-photo", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                username: currentMember.username,
+                                role_type: type,
+                                photo_url: data.local_url
+                            })
+                        });
+                    } catch(e) {}
+
                     renderCharacterToolbar();
                 } else {
                     alert("上传失败: " + (data.detail || "未知异常"));
@@ -1448,6 +1682,7 @@
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         prompt: promptText,
+                        owner: currentMember ? currentMember.username : "songyong",
                         segments: currentParsedSegments.length > 0 ? currentParsedSegments : null,
                         duration: currentDuration,
                         mode: currentMode,
@@ -1716,8 +1951,11 @@
             const badge = document.getElementById("historyTotalBadge");
             container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 24px; color: #94a3b8; font-size: 12px;">⏳ 正在读取历史成片...</div>`;
 
+            const filterScope = document.getElementById("historyFilterScope") ? document.getElementById("historyFilterScope").value : "mine";
+            const ownerParam = filterScope === "mine" ? (currentMember ? currentMember.username : "songyong") : "all";
+
             try {
-                const res = await fetch("/api/v1/render/history");
+                const res = await fetch(`/api/v1/render/history?owner=${ownerParam}`);
                 const data = await res.json();
                 const items = data.items || [];
                 badge.innerText = `${items.length} 部`;
