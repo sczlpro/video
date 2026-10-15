@@ -1535,10 +1535,14 @@
                     const deleteId = item.project_id || item.filename;
                     const itemJson = JSON.stringify(item).replace(/"/g, '&quot;');
                     const simpleTitle = item.title.replace('川渝光伏成片_', '').replace('成片_', '');
+                    // 封面终极秒开策略：优先使用 30KB 高清首帧图片，不存在时回退视频海报，彻底消灭16个视频并发网络堵塞！
+                    const posterMedia = item.poster_url 
+                        ? `<img src="${item.poster_url}" loading="lazy" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; background: #000;">`
+                        : `<video src="${item.video_url}#t=1.0" preload="none" playsinline muted style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; background: #000;"></video>`;
                     return `
                     <div class="history-grid-card" onclick="openVideoPreviewModal(${itemJson})">
-                        <!-- 视频真实渲染封面 (采用绝对占位 + 177.7%高度黑科技，100%锁死9:16画幅，绝无上下切脸) -->
-                        <video src="${item.video_url}#t=1.0" preload="metadata" playsinline muted></video>
+                        <!-- 视频封面 (优先30KB轻量图片海报，瞬间全部刷出) -->
+                        ${posterMedia}
                         
                         <!-- 居中微光播放图标 -->
                         <div style="position: absolute; top: 48%; left: 50%; transform: translate(-50%, -50%); width: 36px; height: 36px; border-radius: 50%; background: rgba(0,0,0,0.65); border: 1.5px solid rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; backdrop-filter: blur(4px); box-shadow: 0 0 12px rgba(0,0,0,0.8); z-index: 3;">

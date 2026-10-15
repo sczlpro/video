@@ -437,6 +437,11 @@ def get_render_history(db: Session = Depends(get_db)):
             time_str = p.created_at.strftime("%Y-%m-%d %H:%M:%S") if p.created_at else ""
             timestamp_title = f"川渝光伏成片_{p.created_at.strftime('%Y%m%d_%H%M%S')}" if p.created_at else filename.replace(".mp4", "")
 
+            # 对应的高清首帧海报 (如果存在，优先使用海报，秒级呈现)
+            poster_fn = f"{local_file.stem}_poster.jpg"
+            poster_file = videos_dir / poster_fn
+            poster_url = f"/static/videos/{poster_fn}" if poster_file.exists() else None
+
             # 提取台词第一句作为导读摘要
             snippet = p.full_script.strip().split("\n")[0] if p.full_script else ""
             if len(snippet) > 42:
@@ -450,6 +455,7 @@ def get_render_history(db: Session = Depends(get_db)):
                 "filename": filename,
                 "video_url": video_url,
                 "download_url": video_url,
+                "poster_url": poster_url,
                 "size_mb": size_mb,
                 "has_video": True,
                 "mtime": p.created_at.timestamp() if p.created_at else local_file.stat().st_mtime,
