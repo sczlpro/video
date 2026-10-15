@@ -547,6 +547,37 @@
             border-color: #8b5cf6;
             color: #fff;
         }
+
+        /* 历史成片九宫格/画廊标准卡片 (采用经典 paddingTop 177.7% 黑科技，物理锁死9:16画幅，兼容全部手机内核) */
+        .history-grid-card {
+            position: relative;
+            width: 100%;
+            height: 0 !important;
+            padding-top: 177.77% !important; /* 16 / 9 = 1.7777，完美9:16，杜绝任何变形或压扁 */
+            background: #000;
+            border: 1.5px solid rgba(255, 255, 255, 0.14);
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.7);
+            box-sizing: border-box;
+            transition: transform 0.15s ease;
+        }
+        .history-grid-card:active {
+            transform: scale(0.96);
+            border-color: #a855f7;
+        }
+
+        .history-grid-card video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            pointer-events: none;
+            background: #000;
+        }
     </style>
 </head>
 <body>
@@ -1393,12 +1424,12 @@
                     const itemJson = JSON.stringify(item).replace(/"/g, '&quot;');
                     const simpleTitle = item.title.replace('川渝光伏成片_', '').replace('成片_', '');
                     return `
-                    <div onclick="openVideoPreviewModal(${itemJson})" style="position: relative; width: 100%; aspect-ratio: 9/16; background: #000; border: 1.5px solid rgba(255,255,255,0.14); border-radius: 12px; overflow: hidden; cursor: pointer; display: flex; flex-direction: column; justify-content: flex-end; padding: 6px; box-shadow: 0 6px 18px rgba(0,0,0,0.7); box-sizing: border-box;">
-                        <!-- 视频真实渲染封面 (object-fit: contain 完整原画无切边呈现) -->
-                        <video src="${item.video_url}#t=1.0" preload="metadata" playsinline muted style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; background: #000;"></video>
+                    <div class="history-grid-card" onclick="openVideoPreviewModal(${itemJson})">
+                        <!-- 视频真实渲染封面 (采用绝对占位 + 177.7%高度黑科技，100%锁死9:16画幅，绝无上下切脸) -->
+                        <video src="${item.video_url}#t=1.0" preload="metadata" playsinline muted></video>
                         
                         <!-- 居中微光播放图标 -->
-                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 34px; height: 34px; border-radius: 50%; background: rgba(0,0,0,0.65); border: 1.5px solid rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center; font-size: 13px; color: #fff; backdrop-filter: blur(4px); box-shadow: 0 0 12px rgba(0,0,0,0.8); z-index: 3;">
+                        <div style="position: absolute; top: 48%; left: 50%; transform: translate(-50%, -50%); width: 36px; height: 36px; border-radius: 50%; background: rgba(0,0,0,0.65); border: 1.5px solid rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; backdrop-filter: blur(4px); box-shadow: 0 0 12px rgba(0,0,0,0.8); z-index: 3;">
                             ▶
                         </div>
 
@@ -1408,7 +1439,7 @@
                         </div>
 
                         <!-- 底部时间遮罩 -->
-                        <div style="position: relative; z-index: 3; background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.95) 100%); margin: -6px; padding: 20px 6px 6px 6px;">
+                        <div style="position: absolute; bottom: 0; left: 0; right: 0; z-index: 3; background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.95) 100%); padding: 20px 6px 6px 6px;">
                             <div style="font-size: 10px; font-weight: 700; color: #f1f5f9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center;">
                                 ${simpleTitle}
                             </div>
