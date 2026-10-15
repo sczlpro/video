@@ -768,8 +768,8 @@
                 <button class="icon-circle-btn" style="width: 28px; height: 28px; font-size: 12px;" onclick="closeHistoryDrawer()">✕</button>
             </div>
             
-            <!-- 手机端沉浸九宫格/双列画廊网格 -->
-            <div id="historyListContainer" style="flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; padding-right: 2px;">
+            <!-- 手机端标准三列沉浸九宫格网格 (3列紧凑并排，完整展现9:16竖版全貌) -->
+            <div id="historyListContainer" style="flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 2px 2px 14px 2px;">
                 <div style="grid-column: 1 / -1; text-align: center; padding: 30px; color: #94a3b8; font-size: 12px;">正在读取历史成片...</div>
             </div>
         </div>
@@ -797,11 +797,6 @@
                     ⬇️ 下载
                 </a>
                 <button id="btnModalDelete" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #f87171; font-size: 12px; font-weight: 700; padding: 8px 12px; border-radius: 8px; cursor: pointer;">
-                    🗑️ 删除
-                </button>
-            </div>
-        </div>
-    </div>
                     🗑️ 删除
                 </button>
             </div>
@@ -1396,25 +1391,27 @@
                 container.innerHTML = items.map((item, index) => {
                     const deleteId = item.project_id || item.filename;
                     const itemJson = JSON.stringify(item).replace(/"/g, '&quot;');
+                    // 格式化简洁标题 (如 "1014_164938")
+                    const simpleTitle = item.title.replace('川渝光伏成片_', '').replace('成片_', '');
                     return `
-                    <div onclick="openVideoPreviewModal(${itemJson})" style="position: relative; width: 100%; aspect-ratio: 9/16; background: #0c0c12; border: 1.5px solid rgba(255,255,255,0.12); border-radius: 12px; overflow: hidden; cursor: pointer; display: flex; flex-direction: column; justify-content: flex-end; padding: 6px; box-shadow: 0 6px 18px rgba(0,0,0,0.7); box-sizing: border-box;">
-                        <!-- 视频真实渲染封面 (contain居中保证完整画幅，绝无异常拉伸或遮盖) -->
-                        <video src="${item.video_url}#t=0.5" preload="auto" playsinline muted onloadeddata="this.currentTime=0.5" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; background: #000;"></video>
+                    <div onclick="openVideoPreviewModal(${itemJson})" style="position: relative; width: 100%; height: 168px; background: #0c0c12; border: 1.5px solid rgba(255,255,255,0.12); border-radius: 10px; overflow: hidden; cursor: pointer; display: flex; flex-direction: column; justify-content: flex-end; padding: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.6); box-sizing: border-box;">
+                        <!-- 视频真实渲染封面 (以第1秒人物清晰帧为封面) -->
+                        <video src="${item.video_url}#t=1.0" preload="metadata" playsinline muted style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; background: #000;"></video>
                         
                         <!-- 居中微光播放图标 -->
-                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 36px; height: 36px; border-radius: 50%; background: rgba(0,0,0,0.6); border: 1.5px solid rgba(255,255,255,0.85); display: flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; backdrop-filter: blur(6px); box-shadow: 0 0 14px rgba(0,0,0,0.8); z-index: 3;">
+                        <div style="position: absolute; top: 46%; left: 50%; transform: translate(-50%, -50%); width: 28px; height: 28px; border-radius: 50%; background: rgba(0,0,0,0.6); border: 1.2px solid rgba(255,255,255,0.85); display: flex; align-items: center; justify-content: center; font-size: 11px; color: #fff; backdrop-filter: blur(4px); box-shadow: 0 0 10px rgba(0,0,0,0.8); z-index: 3;">
                             ▶
                         </div>
 
                         <!-- 顶部体积标签 -->
-                        <div style="position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.8); color: #c084fc; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(139,92,246,0.4); z-index: 3;">
+                        <div style="position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.8); color: #c084fc; font-size: 9px; font-weight: 800; padding: 1px 4px; border-radius: 3px; border: 1px solid rgba(139,92,246,0.4); z-index: 3;">
                             ${item.size_mb}M
                         </div>
 
                         <!-- 底部时间遮罩 -->
-                        <div style="position: relative; z-index: 3; background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.95) 100%); margin: -6px; padding: 20px 6px 6px 6px;">
-                            <div style="font-size: 10px; font-weight: 700; color: #f1f5f9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center;">
-                                ${item.title.replace('川渝光伏成片_', '')}
+                        <div style="position: relative; z-index: 3; background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.95) 100%); margin: -4px; padding: 16px 4px 4px 4px;">
+                            <div style="font-size: 9px; font-weight: 700; color: #f1f5f9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center;">
+                                ${simpleTitle}
                             </div>
                         </div>
                     </div>
