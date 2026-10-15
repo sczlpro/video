@@ -249,10 +249,10 @@ def parse_prompt_to_segments(prompt_text: str, total_duration: int = 30, image_m
                 if candidates:
                     dialogue = max(candidates, key=len)
 
-            # 1. 角色智能判断: 优先遵循 @阿勇正面 或 @阿勇侧面，其次根据动作判断
-            if "@阿勇侧面" in line or "@阿勇_侧面" in line or "@阿勇_45度" in line:
+            # 1. 角色智能判断: 严格按 @侧面 / @正面 / @阿勇侧面 / @阿勇正面 精准锁定机位
+            if any(k in line for k in ["@侧面", "@阿勇侧面", "@阿勇_侧面", "@阿勇_45度"]):
                 ref_role = "ayong_side"
-            elif "@阿勇正面" in line or "@阿勇_正面" in line:
+            elif any(k in line for k in ["@正面", "@阿勇正面", "@阿勇_正面"]):
                 ref_role = "ayong_front"
             else:
                 is_side = ("侧身" in action or "侧面" in action or "指向" in action or "45度" in action)
@@ -301,7 +301,12 @@ def parse_prompt_to_segments(prompt_text: str, total_duration: int = 30, image_m
             dur = min(15, max(1, dur))
 
             # 角色
-            ref_role = "ayong_side" if any(k in seg_content for k in ["侧身", "45度", "侧面"]) else "ayong_front"
+            if any(k in seg_content for k in ["@侧面", "@阿勇侧面", "@阿勇_侧面", "侧身", "45度"]):
+                ref_role = "ayong_side"
+            elif any(k in seg_content for k in ["@正面", "@阿勇正面", "@阿勇_正面"]):
+                ref_role = "ayong_front"
+            else:
+                ref_role = "ayong_front"
 
             # 场景图
             scene_img, scene_label = None, None
@@ -334,7 +339,13 @@ def parse_prompt_to_segments(prompt_text: str, total_duration: int = 30, image_m
     if total_duration <= 15:
         p1 = prompt_clean
         dur = total_duration
-        ref_role = "ayong_side" if any(k in p1 for k in ["侧身", "45度", "侧面"]) else "ayong_front"
+        if any(k in p1 for k in ["@侧面", "@阿勇侧面", "侧身", "45度"]):
+            ref_role = "ayong_side"
+        elif any(k in p1 for k in ["@正面", "@阿勇正面"]):
+            ref_role = "ayong_front"
+        else:
+            ref_role = "ayong_front"
+
         img_match = img_tag_regex.search(p1)
         scene_img, scene_label = resolve_scene_image(img_match.group(1) if img_match else "1", image_map, 0)
         clean_diag = clean_text_for_dialogue(p1)

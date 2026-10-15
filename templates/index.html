@@ -582,12 +582,8 @@
 </head>
 <body>
 
-    <!-- 顶部导航栏 (极简布局：左清空 + 右历史成片，无冗余标签) -->
-    <header class="top-navbar">
-        <button class="icon-circle-btn" onclick="clearInput()" title="清空输入框与分镜">
-            ✕
-        </button>
-
+    <!-- 顶部导航栏 (已删除左上角无用关闭按钮，保留右上角历史成片入口) -->
+    <header class="top-navbar" style="justify-content: flex-end;">
         <!-- 🕒 历史成片与任务库按钮 -->
         <div class="model-selector-pill" onclick="openHistoryDrawer()" style="background: rgba(139, 92, 246, 0.18); border-color: rgba(139, 92, 246, 0.45); padding: 6px 14px; cursor: pointer;" title="查看历史生成成片库">
             <span style="font-size: 13px; font-weight: 800; color: #c084fc;">🕒 历史成片</span>
@@ -700,50 +696,32 @@
         </div>
     </div>
 
-    <!-- 2. ★ 算力发牌确认弹窗 (绝对红线安全锁) -->
+    <!-- 2. ★ 极简算力确认弹窗 (仅显示成片时长、预估扣费、分镜列表与确认按钮) -->
     <div class="drawer-modal" id="confirmModal">
-        <div class="confirm-dialog">
+        <div class="confirm-dialog" style="max-width: 440px; padding: 18px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <span style="font-size: 16px; font-weight: 800; color: #fff;">⚠️ 算力提交确认 (防抢跑)</span>
-                <button class="icon-circle-btn" style="width: 28px; height: 28px; font-size: 12px;" onclick="closeConfirmDialog()">✕</button>
-            </div>
-            <p style="font-size: 12px; color: var(--jimeng-text-sub); line-height: 1.5; margin-bottom: 12px;">
-                系统物理禁止静默跑算力。请选择出片模式并核验分镜内容，手动确认后执行发牌：
-            </p>
-
-            <!-- 模式选择 -->
-            <div style="font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 6px;">出片发牌模式：</div>
-            <div class="param-option-row" style="margin-bottom: 12px;">
-                <div class="param-pill active" id="pillModeCloud" onclick="selectMode('cloud')">
-                    <div>🚀 AutoDL 云端真实发牌</div>
-                    <div style="font-size: 10px; color:#10b981; margin-top:2px;">minimax_h3 · 真实渲染</div>
-                </div>
-                <div class="param-pill" id="pillModeMock" onclick="selectMode('mock')">
-                    <div>⚡ 本地极速模拟</div>
-                    <div style="font-size: 10px; color:#94a3b8; margin-top:2px;">0成本秒出 · 流程全验</div>
-                </div>
+                <span style="font-size: 15px; font-weight: 800; color: #fff;">🚀 确认提交出片</span>
+                <button class="icon-circle-btn" style="width: 26px; height: 26px; font-size: 11px;" onclick="closeConfirmDialog()">✕</button>
             </div>
 
-            <div style="background: #101015; border: 1px solid var(--jimeng-border); border-radius: 12px; padding: 12px; margin-bottom: 12px;">
-                <div style="display: flex; justify-content: space-between; font-size: 12px; color: #94a3b8; margin-bottom: 6px;">
-                    <span>工作流:</span><span style="color:#c084fc; font-weight:700;" id="modalWorkflowLabel">minimax_h3_zm_u24</span>
+            <!-- 核心数据看板：时长与费用 -->
+            <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px 14px; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 12px; color: #94a3b8;">成片总时长:</span>
+                    <span id="modalDurationSpan" style="font-size: 14px; font-weight: 800; color: #f1f5f9;">30 秒</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; font-size: 12px; color: #94a3b8; margin-bottom: 6px;">
-                    <span>目标成片时长:</span><span id="modalDurationSpan">30 秒</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight:700; color:#fff; border-top:1px dashed var(--jimeng-border); padding-top:6px; margin-top:6px;">
-                    <span>预估总算力扣费:</span><span style="color:#10b981;" id="modalCostSpan">¥1.20</span>
+                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 8px;">
+                    <span style="font-size: 12px; color: #94a3b8;">预估总算力扣费:</span>
+                    <span id="modalCostSpan" style="font-size: 16px; font-weight: 800; color: #10b981;">¥1.20</span>
                 </div>
             </div>
 
             <!-- 分镜拆解核验清单 -->
-            <div id="modalSegmentsList" style="display:none; max-height: 120px; overflow-y: auto; background: #0c0c10; border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 8px; margin-bottom: 14px; font-size: 11px; color: #cbd5e1;">
+            <div style="font-size: 11px; font-weight: 700; color: #94a3b8; margin-bottom: 6px;">分镜及机位清单：</div>
+            <div id="modalSegmentsList" style="max-height: 140px; overflow-y: auto; background: #0a0a0e; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 10px; margin-bottom: 16px; font-size: 11px; color: #cbd5e1;">
             </div>
-            <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 18px; cursor: pointer;">
-                <input type="checkbox" id="confirmCheck" onchange="toggleConfirmBtn()" style="accent-color: #8b5cf6; width: 16px; height: 16px;">
-                <span style="font-size: 12px; font-weight: 600; color: #e2e8f0;">我已核验豆包分镜内容，确认发牌</span>
-            </label>
-            <button class="btn-generate-main ready" id="btnExecuteReal" disabled onclick="executeSubmitReal()" style="width: 100%; justify-content: center; padding: 12px;">
+
+            <button class="btn-generate-main ready" id="btnExecuteReal" onclick="executeSubmitReal()" style="width: 100%; justify-content: center; padding: 11px; font-size: 14px; border-radius: 10px;">
                 🚀 确认提交生成出片
             </button>
         </div>
