@@ -775,9 +775,9 @@
         </div>
     </div>
 
-    <!-- 5. 视频弹窗全屏预览器 (点击九宫格后呼出，带大播放器与下载/删除操作) -->
-    <div class="drawer-modal" id="videoPreviewModal" style="z-index: 60;">
-        <div class="confirm-dialog" style="max-width: 420px; width: 92%; padding: 14px; background: rgba(18, 18, 24, 0.98); border: 1px solid rgba(139, 92, 246, 0.5); border-radius: 20px;">
+    <!-- 5. 视频弹窗全屏预览器 (点击九宫格后呼出，z-index设为1000最顶层，杜绝被遮挡) -->
+    <div class="drawer-modal" id="videoPreviewModal" style="z-index: 1000; align-items: center;">
+        <div class="confirm-dialog" style="max-width: 420px; width: 92%; padding: 14px; background: rgba(18, 18, 24, 0.98); border: 1px solid rgba(139, 92, 246, 0.6); border-radius: 20px; box-shadow: 0 25px 70px rgba(0,0,0,0.95);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <span id="modalPreviewTitle" style="font-size: 13px; font-weight: 800; color: #f1f5f9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 280px;">视频播放</span>
                 <button class="icon-circle-btn" style="width: 26px; height: 26px; font-size: 11px;" onclick="closeVideoPreviewModal()">✕</button>
@@ -797,6 +797,11 @@
                     ⬇️ 下载
                 </a>
                 <button id="btnModalDelete" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #f87171; font-size: 12px; font-weight: 700; padding: 8px 12px; border-radius: 8px; cursor: pointer;">
+                    🗑️ 删除
+                </button>
+            </div>
+        </div>
+    </div>
                     🗑️ 删除
                 </button>
             </div>
@@ -1392,23 +1397,23 @@
                     const deleteId = item.project_id || item.filename;
                     const itemJson = JSON.stringify(item).replace(/"/g, '&quot;');
                     return `
-                    <div onclick="openVideoPreviewModal(${itemJson})" style="position: relative; aspect-ratio: 9/16; background: #000; border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; overflow: hidden; cursor: pointer; display: flex; flex-direction: column; justify-content: flex-end; padding: 6px; box-shadow: 0 4px 14px rgba(0,0,0,0.6); transition: transform 0.2s ease;">
-                        <!-- 视频首帧背景海报 -->
-                        <video src="${item.video_url}#t=0.5" preload="metadata" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; opacity: 0.85;"></video>
+                    <div onclick="openVideoPreviewModal(${itemJson})" style="position: relative; width: 100%; aspect-ratio: 9/16; background: #0c0c12; border: 1.5px solid rgba(255,255,255,0.12); border-radius: 12px; overflow: hidden; cursor: pointer; display: flex; flex-direction: column; justify-content: flex-end; padding: 6px; box-shadow: 0 6px 18px rgba(0,0,0,0.7); box-sizing: border-box;">
+                        <!-- 视频真实渲染封面 (contain居中保证完整画幅，绝无异常拉伸或遮盖) -->
+                        <video src="${item.video_url}#t=0.5" preload="auto" playsinline muted onloadeddata="this.currentTime=0.5" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; background: #000;"></video>
                         
                         <!-- 居中微光播放图标 -->
-                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 34px; height: 34px; border-radius: 50%; background: rgba(0,0,0,0.55); border: 1.5px solid rgba(255,255,255,0.7); display: flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; backdrop-filter: blur(4px);">
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 36px; height: 36px; border-radius: 50%; background: rgba(0,0,0,0.6); border: 1.5px solid rgba(255,255,255,0.85); display: flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; backdrop-filter: blur(6px); box-shadow: 0 0 14px rgba(0,0,0,0.8); z-index: 3;">
                             ▶
                         </div>
 
                         <!-- 顶部体积标签 -->
-                        <div style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.75); color: #c084fc; font-size: 10px; font-weight: 800; padding: 1px 5px; border-radius: 4px; border: 1px solid rgba(139,92,246,0.3);">
+                        <div style="position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.8); color: #c084fc; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(139,92,246,0.4); z-index: 3;">
                             ${item.size_mb}M
                         </div>
 
                         <!-- 底部时间遮罩 -->
-                        <div style="position: relative; z-index: 2; background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.92) 100%); margin: -6px; padding: 16px 6px 6px 6px;">
-                            <div style="font-size: 10px; font-weight: 700; color: #f1f5f9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        <div style="position: relative; z-index: 3; background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.95) 100%); margin: -6px; padding: 20px 6px 6px 6px;">
+                            <div style="font-size: 10px; font-weight: 700; color: #f1f5f9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center;">
                                 ${item.title.replace('川渝光伏成片_', '')}
                             </div>
                         </div>
