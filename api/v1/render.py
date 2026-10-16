@@ -47,9 +47,10 @@ def clean_text_for_dialogue(text: str) -> str:
     t = re.sub(r"\s{2,}", " ", t).strip()
     return t
 
-async def enrich_scene_with_llm_if_available(scene_desc: str, action_desc: str, camera_desc: str) -> str:
+async def enrich_scene_with_llm_if_available(scene_desc: str, action_desc: str, camera_desc: str, dialogue_text: str = "") -> str:
     """
     大模型编译中枢：如果用户配置了任意厂商的大模型API，0.3秒内将中文语义动态编译为好莱坞物理级英文视觉提示词；
+    ★ 核心升级：声画绝对对齐（Audio-Visual Semantic Binding），台词讲什么，画面就必须具象展示什么！
     未配置时优雅回退为规则增强器，彻底治本！
     """
     cfg = get_llm_config()
@@ -60,16 +61,20 @@ async def enrich_scene_with_llm_if_available(scene_desc: str, action_desc: str, 
         return enrich_scene_description(scene_desc)
 
     system_prompt = (
-        "You are the official Hollywood master visual prompt director and cinematographer for MiniMax H3 (minimax_h3_zm_u24) in Ref2VA full-reference video mode. "
-        "Your task: Convert the user's brief Chinese scene, camera, and action inputs into a dense, photorealistic, professional English audiovisual visual prompt (60-95 words). "
-        "You must execute the following 5 professional cinematic dimensions rigorously:\n"
-        "1. CINEMATIC SHOT FRAMING & SHOT SCALE: Determine the exact shot scale based on intent: Extreme Wide Shot (EWS) / Wide Shot (WS) / Medium-Wide Shot (MWS) / Medium Shot (MS) / Medium Close-Up (MCU). Never leave framing ambiguous.\n"
-        "2. ADVANCED CAMERA KINEMATICS: Explicitly state the exact camera movement with motion type, speed, and axis: e.g., 'Low-angle handheld tracking pull-back with subtle physical inertia', 'Smooth lateral dolly track left revealing vast environmental depth', 'Slow crane descent from wide rooftop overview down to eye-level'.\n"
-        "3. TANGIBLE PHYSICAL ANCHORING (HYPER-DETAILED ENVIRONMENT): Flesh out the scene with concrete, physical real-world engineering entities: weathered corrugated steel with rust textures, high-voltage ceramic insulator bushings, galvanized ventilation shafts, diagonal monocrystalline solar panel grids with glass reflections, cable bridge trays, and atmospheric haze over distant mountains.\n"
-        "4. DYNAMIC SUBJECT-ENVIRONMENT INTERACTION: Describe the subject's natural movement through the space: walking forward with steady strides, shifting physical center of gravity, pointing decisively toward specific background apparatus, interacting with the real spatial parallax.\n"
-        "5. STRICT OUTPUT COMPLIANCE: Output ONLY the English prompt string. Strictly NO conversational preamble, NO markdown, NO quotes, NO Chinese characters, NO subtitle or audio tags."
+        "You are the master cinematographer and visual director for MiniMax H3 (minimax_h3_zm_u24) in Ref2VA video mode. "
+        "Your PRIMARY DIRECTIVE is 'AUDIO-VISUAL SEMANTIC BINDING' (声画严密对齐):\n"
+        "- What the speaker says MUST BE IMMEDIATELY AND PROMINENTLY VISIBLE in the background and physical setting.\n"
+        "- If dialogue mentions '大片闲置屋顶' (vast idle rooftop), the background MUST show an enormous, bare, empty corrugated industrial roof stretching into the distance with zero installations.\n"
+        "- If dialogue mentions '高峰电/电费高' (high electricity bills/peak power), the setting MUST feature high-voltage transformers, digital electric meters, or heavy utility poles.\n"
+        "- If dialogue mentions '全额建站/发绿电' (solar installation), the scene MUST prominently display thousands of gleaming monocrystalline solar panels with aluminum brackets.\n"
+        "\n"
+        "Generate a dense, photorealistic, cinematic English physical visual prompt (60-95 words) encompassing:\n"
+        "1. VISUAL CORRESPONDENCE: The physical environment must directly illustrate the exact subject of the spoken dialogue.\n"
+        "2. CONCRETE INDUSTRIAL NOUNS: Weathered corrugated tiles, safety railings, cable trays, ceramic insulators, distant hazy mountains.\n"
+        "3. DYNAMIC KINEMATICS: Explicit camera motion (tracking pull-back, dolly pan) and subject movement (walking forward, pointing toward the exact mentioned facility).\n"
+        "4. STRICT RULE: Output ONLY the English prompt string. Strictly NO preamble, NO quotes, NO markdown, NO Chinese characters."
     )
-    user_input = f"场景: {scene_desc} | 镜头: {camera_desc} | 动作: {action_desc}"
+    user_input = f"口播台词: {dialogue_text} | 画面场景需求: {scene_desc} | 运镜: {camera_desc} | 动作: {action_desc}"
 
     try:
         enriched_en = await call_llm_chat([
@@ -495,12 +500,13 @@ async def parse_prompt_to_segments_async(prompt_text: str, total_duration: int =
             raw_sc = s.get("raw_scene", "")
             raw_act = s.get("raw_action", "")
             raw_cam = s.get("raw_camera", "")
-            # 若原始场景存在，由大模型深度赋能
-            if raw_sc or raw_act or raw_cam:
+            diag = s.get("dialogue", "")
+            # 若原始场景存在，由大模型深度赋能，实现声画严密对齐
+            if raw_sc or raw_act or raw_cam or diag:
                 try:
-                    llm_env = await enrich_scene_with_llm_if_available(raw_sc, raw_act, raw_cam)
+                    llm_env = await enrich_scene_with_llm_if_available(raw_sc, raw_act, raw_cam, dialogue_text=diag)
                     if llm_env and len(llm_env) > 15:
-                        s["prompt"] = build_cinematic_h3_prompt(llm_env, raw_act, s.get("dialogue", ""), s.get("role", "ayong_front"), bool(s.get("scene_image")), camera_desc=raw_cam)
+                        s["prompt"] = build_cinematic_h3_prompt(llm_env, raw_act, diag, s.get("role", "ayong_front"), bool(s.get("scene_image")), camera_desc=raw_cam)
                 except Exception as e:
                     print(f"[AsyncParse] LLM enrich pass error: {e}")
     return segs
