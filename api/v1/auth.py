@@ -78,3 +78,18 @@ def update_role_photo(req: UpdateRolePhotoRequest, db: Session = Depends(get_db)
 
     db.commit()
     return {"success": True, "message": "专属出镜形象已更新！", "user": user.to_dict()}
+
+class UpdateVoiceSampleRequest(BaseModel):
+    username: str
+    voice_url: str
+
+@router.post("/update-voice-sample", summary="更新成员专属克隆原声音频")
+def update_voice_sample(req: UpdateVoiceSampleRequest, db: Session = Depends(get_db)):
+    """持久化保存成员自己的 5~15 秒原声录音直链，供 indextts2-v1 克隆使用"""
+    user = db.query(User).filter(User.username == req.username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="成员不存在")
+
+    user.voice_sample_url = req.voice_url
+    db.commit()
+    return {"success": True, "message": "专属原声音频已绑定！", "user": user.to_dict()}

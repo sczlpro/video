@@ -262,6 +262,52 @@ class AutoDLService:
                     })
             return active
 
+    def generate_voice_via_indextts2(self, prompt_text: str, voice_sample_url: str) -> Optional[str]:
+        """
+        调用 AutoDL 官方 indextts2-v1 工作流，使用成员自身 5~15 秒原声样本生成逼真对白配音
+        返回生成的 WAV 音频公网直链 (可直接送入 minimax_h3_zm_u24 的 ref_audio_0 槽位)
+        """
+        if not prompt_text or not voice_sample_url:
+            return None
+
+        clean_text = prompt_text.strip()
+        payload = {
+            "prompt_text": clean_text,
+            "prompt_simple": voice_sample_url,
+            "emo_control_method": "与音色参考音频相同",
+            "emo_calm": 0.3
+        }
+
+        try:
+            print(f"[IndexTTS2] 正在向 indextts2-v1 提交专属声音克隆: '{clean_text[:20]}...' (参考音: {voice_sample_url})")
+            task_id = self.submit_autodl_workflow("indextts2-v1", payload)
+            if not task_id:
+                return None
+
+            # 轮询等待音频生成 (IndexTTS2 秒级出音频，通常 3~8 秒内完成)
+            t_start = time.time()
+            while time.time() - t_start < 60:
+                time.sleep(3)
+                status_info = self.query_task_status(task_id)
+                st = status_info.get("status")
+                if st in ("SUCCESS", "completed", "success"):
+                    # 优先取 results 里的音频链接
+                    audio_url = status_info.get("video_url") # query_task_status 默认字段
+                    if not audio_url and status_info.get("results"):
+                        for res in status_info["results"]:
+                            if res.get("type") == "audio" or str(res.get("url", "")).endswith((".wav", ".mp3")):
+                                audio_url = res.get("url")
+                                break
+                    print(f"[IndexTTS2] 🎉 专属原声克隆成功！音频直链: {audio_url}")
+                    return audio_url
+                elif st in ("FAILED", "failed", "error"):
+                    print(f"[IndexTTS2] 声音克隆任务失败: {status_info.get('error')}")
+                    return None
+        except Exception as e:
+            print(f"[IndexTTS2] 声音克隆异常，平滑降级为纯文本驱动: {e}")
+            return None
+        return None
+
     def _run_job_worker(self, job_id: str, segments: List[dict], mode: str):
         """后台异步处理线程：负责并发提交、轮询监控、下载切片与FFmpeg 0帧无损硬切"""
         time.sleep(0.5)
@@ -353,6 +399,17 @@ class AutoDLService:
             wf_id = self.config.get("video", {}).get("workflow_id", "minimax_h3_zm_u24")
             resolution = self.config.get("video", {}).get("resolution", "768p竖")
 
+            # 检查当前成员是否有绑定的原声录音
+            user_voice_url = None
+            try:
+                db_auth = SessionLocal()
+                owner_user = db_auth.query(User).filter(User.username == job.get("owner", "songyong")).first()
+                if owner_user and owner_user.voice_sample_url:
+                    user_voice_url = owner_user.voice_sample_url
+                db_auth.close()
+            except Exception as e:
+                print(f"[AutoDLService] 读取成员原声样本失败: {e}")
+
             for i, seg in enumerate(segments):
                 sid = seg.get("id", i + 1)
                 dur = min(15, max(1, int(seg.get("duration", 10))))
@@ -367,6 +424,16 @@ class AutoDLService:
                     "resolution": resolution,
                     "ref_image_0": img_url
                 }
+
+                # 如果成员绑定了专属原声录音，优先调用 indextts2-v1 实时克隆本句台词
+                diag_text = seg.get("dialogue", "")
+                if user_voice_url and diag_text:
+                    with self._lock:
+                        job["step"] = f"正在使用 IndexTTS2 克隆【{job.get('owner', '宋勇')}】第{sid}段原声音色..."
+                    custom_audio_url = self.generate_voice_via_indextts2(diag_text, user_voice_url)
+                    if custom_audio_url:
+                        payload["ref_audio_0"] = custom_audio_url
+                        print(f"[AutoDLService] ★ 分镜 {sid} 成功接入宋勇原声克隆音频: {custom_audio_url}")
 
                 # 场景图插槽 (ref_image_1)
                 scene_fn = seg.get("scene_image")

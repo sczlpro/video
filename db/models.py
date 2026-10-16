@@ -31,6 +31,7 @@ class User(Base):
     password_hash = Column(String(128), nullable=False, doc="密码哈希 (默认88888888)")
     role_front_url = Column(Text, nullable=True, doc="专属主角正面特写照")
     role_side_url = Column(Text, nullable=True, doc="专属主角45度侧身照")
+    voice_sample_url = Column(Text, nullable=True, doc="专属原声克隆录音参考音频URL (用于indextts2-v1)")
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
@@ -40,7 +41,8 @@ class User(Base):
             "username": self.username,
             "name": self.name,
             "role_front_url": self.role_front_url,
-            "role_side_url": self.role_side_url
+            "role_side_url": self.role_side_url,
+            "voice_sample_url": self.voice_sample_url
         }
 
 class Project(Base):

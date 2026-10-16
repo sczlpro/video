@@ -905,6 +905,23 @@
                 <input type="file" id="inputRoleSide" accept="image/*" style="display: none;" onchange="handleUploadCustomRole(event, 'side')">
             </div>
 
+            <!-- 3. 专属声音克隆录音 (用于 indextts2-v1 原声讲话) -->
+            <div style="background: #111118; border: 1px dashed rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 12px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 42px; height: 42px; border-radius: 50%; border: 1.5px solid #10b981; display: flex; align-items: center; justify-content: center; background: #0c0c12;">
+                        <span style="font-size: 20px;">🎙️</span>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; font-weight: 700; color: #f1f5f9;">我的原声音频 (选传)</div>
+                        <div id="voiceStatusLabel" style="font-size: 10px; color: #94a3b8;">传一段5-15秒纯净录音</div>
+                    </div>
+                </div>
+                <button onclick="document.getElementById('inputVoiceSample').click()" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.45); color: #10b981; font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer;">
+                    上传/更换录音
+                </button>
+                <input type="file" id="inputVoiceSample" accept="audio/*" style="display: none;" onchange="handleUploadVoiceSample(event)">
+            </div>
+
             <div style="display: flex; gap: 8px;">
                 <button onclick="deleteCustomRolePhotos()" style="flex: 1; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #f87171; font-size: 12px; font-weight: 700; padding: 9px; border-radius: 8px; cursor: pointer;">
                     🗑️ 清空主角形象
@@ -1467,6 +1484,12 @@
                 emptyS.style.display = "block";
             }
 
+            const voiceLbl = document.getElementById("voiceStatusLabel");
+            if (voiceLbl) {
+                voiceLbl.innerText = currentMember && currentMember.voice_sample_url ? "已绑定专属原声 (已激活)" : "传一段5-15秒纯净录音";
+                voiceLbl.style.color = currentMember && currentMember.voice_sample_url ? "#10b981" : "#94a3b8";
+            }
+
             document.getElementById("addRoleModal").classList.add("active");
         }
         function closeAddRoleModal() {
@@ -1523,6 +1546,46 @@
                 }
             } catch (err) {
                 alert("上传异常: " + err);
+            }
+        }
+
+        // 上传 5~15 秒专属原声录音音频 (供 indextts2-v1 声音克隆使用)
+        async function handleUploadVoiceSample(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const fd = new FormData();
+            fd.append("file", file);
+            fd.append("category", "voice");
+
+            try {
+                const res = await fetch("/api/v1/storage/upload-local", { method: "POST", body: fd });
+                const data = await res.json();
+                if (data.success) {
+                    currentMember.voice_sample_url = data.local_url;
+                    localStorage.setItem("dsh_current_member", JSON.stringify(currentMember));
+
+                    // 持久化同步到后端数据库
+                    await fetch("/api/v1/auth/update-voice-sample", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            username: currentMember.username,
+                            voice_url: data.local_url
+                        })
+                    });
+
+                    const voiceLbl = document.getElementById("voiceStatusLabel");
+                    if (voiceLbl) {
+                        voiceLbl.innerText = "已成功绑定原声录音 (已激活)";
+                        voiceLbl.style.color = "#10b981";
+                    }
+                    alert("🎉 专属原声音频绑定成功！后续出片将自动使用 IndexTTS2 驱动您本人的声音讲话！");
+                } else {
+                    alert("录音上传失败: " + (data.detail || "未知异常"));
+                }
+            } catch(e) {
+                alert("录音上传异常: " + e);
             }
         }
 
