@@ -279,11 +279,40 @@ class AutoDLService:
             if local_fp.exists():
                 real_voice_url = self.upload_file_to_storage(local_fp)
 
+        # 情感动力学分析：根据台词语义自适应调整情绪向量，彻底激活抑扬顿挫
+        emo_method = "使用情感向量控制"
+        emo_calm = 0.2
+        emo_happy = 0.0
+        emo_angry = 0.0
+        emo_surprised = 0.0
+
+        t_lower = clean_text.lower()
+        if any(k in clean_text for k in ["肉紧", "痛", "死扛", "发冲", "漏水", "贵", "烦心", "扯拐"]):
+            # 痛点质问：降低冷静度，微调急迫与微愠，产生强烈起伏质问感
+            emo_calm = 0.1
+            emo_angry = 0.4
+            emo_surprised = 0.3
+        elif any(k in clean_text for k in ["真金白银", "省下", "一大坨", "全额", "安逸", "到手"]):
+            # 收益喜悦：激活兴奋与积极自信
+            emo_calm = 0.1
+            emo_happy = 0.6
+            emo_surprised = 0.2
+        elif any(k in clean_text for k in ["算一算", "测算", "私信", "落教", "电话", "留个面积"]):
+            # 坚定号召：专业、笃定、稳健
+            emo_calm = 0.4
+            emo_happy = 0.2
+            emo_angry = 0.0
+        else:
+            emo_calm = 0.3
+
         payload = {
             "prompt_text": clean_text,
             "prompt_simple": real_voice_url,
-            "emo_control_method": "与音色参考音频相同",
-            "emo_calm": 0.3
+            "emo_control_method": emo_method,
+            "emo_calm": emo_calm,
+            "emo_happy": emo_happy,
+            "emo_angry": emo_angry,
+            "emo_surprised": emo_surprised
         }
 
         try:
