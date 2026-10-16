@@ -32,13 +32,14 @@ def init_db():
     from .models import User
     Base.metadata.create_all(bind=engine)
 
-    # 预置三位成员白名单 (默认密码 88888888，已哈希加密，初始角色全部为空白加号)
+    # 预置三位成员白名单 (默认密码 88888888，宋勇已绑定刚上传至R2的原声录音)
     db = SessionLocal()
     default_pwd_hash = hashlib.sha256("88888888".encode()).hexdigest()
+    songyong_r2_voice = "https://pub-181ed1de566e43d8947046a376d951a9.r2.dev/assets/voice_%E6%A0%87%E5%87%86%E5%BD%95%E9%9F%B3%202.mp3"
     members = [
-        {"username": "songyong", "name": "宋勇"},
-        {"username": "wufengcheng", "name": "吴封成"},
-        {"username": "yuanyuan", "name": "源源"}
+        {"username": "songyong", "name": "宋勇", "voice": songyong_r2_voice},
+        {"username": "wufengcheng", "name": "吴封成", "voice": None},
+        {"username": "yuanyuan", "name": "源源", "voice": None}
     ]
     for m in members:
         u = db.query(User).filter(User.username == m["username"]).first()
@@ -48,9 +49,12 @@ def init_db():
                 name=m["name"],
                 password_hash=default_pwd_hash,
                 role_front_url=None,
-                role_side_url=None
+                role_side_url=None,
+                voice_sample_url=m.get("voice")
             )
             db.add(u)
+        elif m.get("voice") and not u.voice_sample_url:
+            u.voice_sample_url = m.get("voice")
     db.commit()
     db.close()
     return True
