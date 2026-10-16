@@ -1914,6 +1914,13 @@
                 return;
             }
 
+            // 无论上一次是否提交过，每次打开确认框，强制重置并启用提交按钮！
+            const btnExec = document.getElementById("btnExecuteReal");
+            if (btnExec) {
+                btnExec.innerText = "确认提交";
+                btnExec.disabled = false;
+            }
+
             document.getElementById("confirmModal").classList.add("active");
 
             const listEl = document.getElementById("modalSegmentsList");
@@ -1998,7 +2005,8 @@
             } catch (e) {
                 alert("提交失败：" + e);
             } finally {
-                btn.innerText = "🚀 确认提交生成出片";
+                btn.innerText = "确认提交";
+                btn.disabled = false;
             }
         }
 
