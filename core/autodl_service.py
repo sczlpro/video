@@ -262,12 +262,11 @@ class AutoDLService:
                     })
             return active
 
-    def generate_voice_via_qwen_audio(self, prompt_text: str, custom_voice_id: Optional[str] = None) -> tuple[Optional[str], Optional[float]]:
+    def generate_voice_via_qwen_audio(self, prompt_text: str, custom_voice_id: Optional[str] = None, user_instruction: Optional[str] = None) -> tuple[Optional[str], Optional[float]]:
         """
         调用阿里云百炼旗舰级 Qwen-Audio-3.1-TTS-Flash 语音大模型
-        1. 具备 Free-Style 指令遵循：自动注入真实重音、抑扬顿挫与反问语气；
-        2. 原生支持正宗方言与普通话；
-        3. 毫秒级测量真实音频时长，倒逼视频时长毫秒级对齐，彻底消灭吞字与截断！
+        1. 支持用户在台词前加【语气标签】(如【质问】【兴奋】【沉稳】) 直接控制；
+        2. 无标签时根据台词语义自适应智能推断，彻底实现抑扬顿挫！
         返回: (音频可公开访问直链, 真实音频时长秒数)
         """
         if not prompt_text:
@@ -279,15 +278,19 @@ class AutoDLService:
 
         clean_text = prompt_text.strip()
 
-        # 根据台词语义，自适应注入 Qwen-Audio 专属的 free-style 情绪与发音指令
-        if any(k in clean_text for k in ["肉紧", "痛", "死扛", "发冲", "漏水", "贵", "烦心", "扯拐", "心痛"]):
-            instruction = "语气带着强烈的质疑与反问，情绪急迫有力，重点词加重读音，句尾明显挑高！"
-        elif any(k in clean_text for k in ["真金白银", "省下", "一大坨", "全额", "安逸", "到手"]):
-            instruction = "语气高亢喜悦，充满自信与感染力，声音洪亮饱满！"
-        elif any(k in clean_text for k in ["算一算", "测算", "私信", "落教", "电话", "留个面积"]):
-            instruction = "语速沉稳从容，咬字清晰，展现出权威资方的深厚底气与诚恳！"
+        # 优先读取用户显式指定的语气指令
+        if user_instruction and len(user_instruction.strip()) > 1:
+            instruction = user_instruction.strip()
         else:
-            instruction = "语调自然生动，富有抑扬顿挫的商务说服力与交流感！"
+            # 根据台词语义，自适应注入 Qwen-Audio 专属的 free-style 情绪与发音指令
+            if any(k in clean_text for k in ["肉紧", "痛", "死扛", "发冲", "漏水", "贵", "烦心", "扯拐", "心痛", "吓人", "怎么"]):
+                instruction = "语气带着强烈的质疑与反问，情绪急迫有力，重点词加重读音，句尾明显挑高！"
+            elif any(k in clean_text for k in ["真金白银", "省下", "一大坨", "全额", "安逸", "到手", "打折", "免费", "现金"]):
+                instruction = "语气高亢喜悦，充满自信与感染力，声音洪亮饱满！"
+            elif any(k in clean_text for k in ["算一算", "测算", "私信", "落教", "电话", "留个面积", "明白", "亲自"]):
+                instruction = "语速沉稳从容，咬字清晰，展现出权威资方的深厚底气与诚恳！"
+            else:
+                instruction = "语调自然生动，富有抑扬顿挫的商务说服力与交流感！"
 
         # 优先使用宋勇在百炼复刻成功的专属 Voice ID，未复刻前使用 xunanchuan_v3.1
         SONGYONG_OFFICIAL_VOICE_ID = "qwen-audio-3.1-tts-flash-bailian-d6f061f198d247979cd9d96c466ea1d2"
@@ -481,7 +484,8 @@ class AutoDLService:
                     with self._lock:
                         job["step"] = f"正在使用 Qwen-Audio-3.1 旗舰大模型合成第{sid}段高品质语音..."
                     qwen_voice_id = user_voice_url if (user_voice_url and not user_voice_url.startswith("http")) else None
-                    custom_audio_url, exact_dur = self.generate_voice_via_qwen_audio(diag_text, custom_voice_id=qwen_voice_id)
+                    user_tone = seg.get("tone_instruction")
+                    custom_audio_url, exact_dur = self.generate_voice_via_qwen_audio(diag_text, custom_voice_id=qwen_voice_id, user_instruction=user_tone)
                     if custom_audio_url:
                         payload["ref_audio_0"] = custom_audio_url
                         # 核心突破：音频时长倒逼视频时长毫秒级对齐，彻底消灭吞字！
