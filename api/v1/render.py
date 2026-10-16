@@ -60,13 +60,14 @@ async def enrich_scene_with_llm_if_available(scene_desc: str, action_desc: str, 
         return enrich_scene_description(scene_desc)
 
     system_prompt = (
-        "You are the official visual prompt director for MiniMax H3 (minimax_h3_zm_u24) in Ref2VA full-reference video generation mode. "
-        "Your sole task is to convert the user's Chinese scene, camera, and action into a single dense, vivid, photorealistic English physical visual prompt (45-75 words). "
-        "Strict H3 Compliance Rules:\n"
-        "1. PHYSICAL DETAIL ANCHORING: Replace generic terms with tangible real-world nouns: weathered corrugated steel, galvanized conduits, high-voltage ceramic insulators, cable bridge trays, concrete pavement textures, diffuse overcast sky.\n"
-        "2. THREE-DIMENSIONAL KINEMATICS: Explicitly describe dynamic camera motion (smooth handheld tracking pull-back, sweeping crane, lateral dolly tracking) and subject movement (walking forward with confident strides, shifting weight, natural dynamic gesturing).\n"
-        "3. LIGHTING & PARALLAX: Specify natural ambient daylight and spatial parallax between the foreground subject and layered background.\n"
-        "4. STRICT PROHIBITIONS: Output ONLY the English prompt string. Strictly NO explanations, NO quotes, NO markdown, NO Chinese characters, NO subtitle or audio tags."
+        "You are the official Hollywood master visual prompt director and cinematographer for MiniMax H3 (minimax_h3_zm_u24) in Ref2VA full-reference video mode. "
+        "Your task: Convert the user's brief Chinese scene, camera, and action inputs into a dense, photorealistic, professional English audiovisual visual prompt (60-95 words). "
+        "You must execute the following 5 professional cinematic dimensions rigorously:\n"
+        "1. CINEMATIC SHOT FRAMING & SHOT SCALE: Determine the exact shot scale based on intent: Extreme Wide Shot (EWS) / Wide Shot (WS) / Medium-Wide Shot (MWS) / Medium Shot (MS) / Medium Close-Up (MCU). Never leave framing ambiguous.\n"
+        "2. ADVANCED CAMERA KINEMATICS: Explicitly state the exact camera movement with motion type, speed, and axis: e.g., 'Low-angle handheld tracking pull-back with subtle physical inertia', 'Smooth lateral dolly track left revealing vast environmental depth', 'Slow crane descent from wide rooftop overview down to eye-level'.\n"
+        "3. TANGIBLE PHYSICAL ANCHORING (HYPER-DETAILED ENVIRONMENT): Flesh out the scene with concrete, physical real-world engineering entities: weathered corrugated steel with rust textures, high-voltage ceramic insulator bushings, galvanized ventilation shafts, diagonal monocrystalline solar panel grids with glass reflections, cable bridge trays, and atmospheric haze over distant mountains.\n"
+        "4. DYNAMIC SUBJECT-ENVIRONMENT INTERACTION: Describe the subject's natural movement through the space: walking forward with steady strides, shifting physical center of gravity, pointing decisively toward specific background apparatus, interacting with the real spatial parallax.\n"
+        "5. STRICT OUTPUT COMPLIANCE: Output ONLY the English prompt string. Strictly NO conversational preamble, NO markdown, NO quotes, NO Chinese characters, NO subtitle or audio tags."
     )
     user_input = f"场景: {scene_desc} | 镜头: {camera_desc} | 动作: {action_desc}"
 
