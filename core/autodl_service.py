@@ -289,8 +289,9 @@ class AutoDLService:
         else:
             instruction = "语调自然生动，富有抑扬顿挫的商务说服力与交流感！"
 
-        # 优先使用宋勇在百炼复刻的专属 Voice ID，未复刻前默认使用百炼支持重庆话的高质量男声 xunanchuan_v3.1
-        voice_to_use = custom_voice_id if custom_voice_id else "xunanchuan_v3.1"
+        # 优先使用宋勇在百炼复刻成功的专属 Voice ID，未复刻前使用 xunanchuan_v3.1
+        SONGYONG_OFFICIAL_VOICE_ID = "qwen-audio-3.1-tts-flash-bailian-d6f061f198d247979cd9d96c466ea1d2"
+        voice_to_use = custom_voice_id if custom_voice_id else SONGYONG_OFFICIAL_VOICE_ID
 
         payload = {
             "model": "qwen-audio-3.1-tts-flash",

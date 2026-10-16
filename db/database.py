@@ -32,12 +32,12 @@ def init_db():
     from .models import User
     Base.metadata.create_all(bind=engine)
 
-    # 预置三位成员白名单 (默认密码 88888888，宋勇已绑定刚上传至R2的原声录音)
+    # 预置三位成员白名单 (默认密码 88888888，宋勇已绑定百炼官方复刻专属 Voice ID)
     db = SessionLocal()
     default_pwd_hash = hashlib.sha256("88888888".encode()).hexdigest()
-    songyong_r2_voice = "https://pub-181ed1de566e43d8947046a376d951a9.r2.dev/assets/voice_%E6%A0%87%E5%87%86%E5%BD%95%E9%9F%B3%202.mp3"
+    songyong_official_voice = "qwen-audio-3.1-tts-flash-bailian-d6f061f198d247979cd9d96c466ea1d2"
     members = [
-        {"username": "songyong", "name": "宋勇", "voice": songyong_r2_voice},
+        {"username": "songyong", "name": "宋勇", "voice": songyong_official_voice},
         {"username": "wufengcheng", "name": "吴封成", "voice": None},
         {"username": "yuanyuan", "name": "源源", "voice": None}
     ]
