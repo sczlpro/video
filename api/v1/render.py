@@ -245,13 +245,19 @@ def build_cinematic_h3_prompt(scene_desc: str, action_desc: str, dialogue: str, 
         "From 0.0s the mouth opens naturally in sync with speech, lips move accurately matching the dialogue."
     )
 
+    # 4. 环境声场 (严格激活 H3 官方 overall_soundscape 物理声音引擎，赋予真实大风与工业运转低频)
+    soundscape_rule = (
+        "overall_soundscape: Authentic outdoor factory rooftop ambience with continuous natural wind murmuring through metallic conduits, "
+        "distant subtle low-frequency mechanical humming from the industrial plant, and natural footsteps echoing on the surface."
+    )
+
     clean_dialogue = clean_text_for_dialogue(dialogue)
     if clean_dialogue:
         dialogue_tag = f"<d>[Chinese] {clean_dialogue}</d>"
     else:
         dialogue_tag = "<Picture 1> subject speaking."
 
-    return f"{camera_style} {framing_rule} {character_desc} {gesture_rule} {env_rule} {clean_screen_rule} {speech_rule} {dialogue_tag}"
+    return f"{camera_style} {framing_rule} {character_desc} {gesture_rule} {env_rule} {clean_screen_rule} {speech_rule} {dialogue_tag} {soundscape_rule}"
 
 def parse_prompt_to_segments(prompt_text: str, total_duration: int = 30, image_map: Optional[Dict[str, str]] = None) -> List[dict]:
     """
