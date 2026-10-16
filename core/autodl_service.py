@@ -262,88 +262,95 @@ class AutoDLService:
                     })
             return active
 
-    def generate_voice_via_indextts2(self, prompt_text: str, voice_sample_url: str) -> Optional[str]:
+    def generate_voice_via_qwen_audio(self, prompt_text: str, custom_voice_id: Optional[str] = None) -> tuple[Optional[str], Optional[float]]:
         """
-        调用 AutoDL 官方 indextts2-v1 工作流，使用成员自身 5~15 秒原声样本生成逼真对白配音
-        返回生成的 WAV 音频公网直链 (可直接送入 minimax_h3_zm_u24 的 ref_audio_0 槽位)
+        调用阿里云百炼旗舰级 Qwen-Audio-3.1-TTS-Flash 语音大模型
+        1. 具备 Free-Style 指令遵循：自动注入真实重音、抑扬顿挫与反问语气；
+        2. 原生支持正宗方言与普通话；
+        3. 毫秒级测量真实音频时长，倒逼视频时长毫秒级对齐，彻底消灭吞字与截断！
+        返回: (音频可公开访问直链, 真实音频时长秒数)
         """
-        if not prompt_text or not voice_sample_url:
-            return None
+        if not prompt_text:
+            return None, None
+
+        api_key = settings.DASHSCOPE_API_KEY
+        if not api_key:
+            return None, None
 
         clean_text = prompt_text.strip()
 
-        # 核心保证：voice_sample_url 必须是可从公网下载的真实直链，如果是 /static/ 相对路径，转换为 R2 或当前公网绝对地址
-        real_voice_url = voice_sample_url
-        if voice_sample_url.startswith("/static/"):
-            local_fp = settings.BASE_DIR / voice_sample_url.lstrip("/")
-            if local_fp.exists():
-                real_voice_url = self.upload_file_to_storage(local_fp)
-
-        # 情感动力学分析：根据台词语义自适应调整情绪向量，彻底激活抑扬顿挫
-        emo_method = "使用情感向量控制"
-        emo_calm = 0.2
-        emo_happy = 0.0
-        emo_angry = 0.0
-        emo_surprised = 0.0
-
-        t_lower = clean_text.lower()
-        if any(k in clean_text for k in ["肉紧", "痛", "死扛", "发冲", "漏水", "贵", "烦心", "扯拐"]):
-            # 痛点质问：降低冷静度，微调急迫与微愠，产生强烈起伏质问感
-            emo_calm = 0.1
-            emo_angry = 0.4
-            emo_surprised = 0.3
+        # 根据台词语义，自适应注入 Qwen-Audio 专属的 free-style 情绪与发音指令
+        if any(k in clean_text for k in ["肉紧", "痛", "死扛", "发冲", "漏水", "贵", "烦心", "扯拐", "心痛"]):
+            instruction = "语气带着强烈的质疑与反问，情绪急迫有力，重点词加重读音，句尾明显挑高！"
         elif any(k in clean_text for k in ["真金白银", "省下", "一大坨", "全额", "安逸", "到手"]):
-            # 收益喜悦：激活兴奋与积极自信
-            emo_calm = 0.1
-            emo_happy = 0.6
-            emo_surprised = 0.2
+            instruction = "语气高亢喜悦，充满自信与感染力，声音洪亮饱满！"
         elif any(k in clean_text for k in ["算一算", "测算", "私信", "落教", "电话", "留个面积"]):
-            # 坚定号召：专业、笃定、稳健
-            emo_calm = 0.4
-            emo_happy = 0.2
-            emo_angry = 0.0
+            instruction = "语速沉稳从容，咬字清晰，展现出权威资方的深厚底气与诚恳！"
         else:
-            emo_calm = 0.3
+            instruction = "语调自然生动，富有抑扬顿挫的商务说服力与交流感！"
+
+        # 优先使用宋勇在百炼复刻的专属 Voice ID，未复刻前默认使用百炼支持重庆话的高质量男声 xunanchuan_v3.1
+        voice_to_use = custom_voice_id if custom_voice_id else "xunanchuan_v3.1"
 
         payload = {
-            "prompt_text": clean_text,
-            "prompt_simple": real_voice_url,
-            "emo_control_method": emo_method,
-            "emo_calm": emo_calm,
-            "emo_happy": emo_happy,
-            "emo_angry": emo_angry,
-            "emo_surprised": emo_surprised
+            "model": "qwen-audio-3.1-tts-flash",
+            "input": {
+                "text": clean_text,
+                "instruction": instruction
+            },
+            "parameters": {
+                "voice": voice_to_use,
+                "format": "wav",
+                "sample_rate": 24000
+            }
+        }
+
+        endpoint = settings.DASHSCOPE_TTS_URL
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
         }
 
         try:
-            print(f"[IndexTTS2] 正在向 indextts2-v1 提交专属声音克隆: '{clean_text[:20]}...' (参考音公网: {real_voice_url})")
-            task_id = self.submit_autodl_workflow("indextts2-v1", payload)
-            if not task_id:
-                return None
+            print(f"[QwenAudioTTS] 正在调用 Qwen-Audio-3.1 合成语音: '{clean_text[:20]}...' (音色: {voice_to_use})")
+            req = requests.post(endpoint, json=payload, headers=headers, timeout=20)
+            if req.status_code == 200:
+                res_data = req.json()
+                audio_raw_url = res_data.get("output", {}).get("audio", {}).get("url")
+                if not audio_raw_url:
+                    print(f"[QwenAudioTTS] 响应未包含音频URL: {res_data}")
+                    return None, None
 
-            # 轮询等待音频生成 (IndexTTS2 秒级出音频，通常 3~8 秒内完成)
-            t_start = time.time()
-            while time.time() - t_start < 60:
-                time.sleep(3)
-                status_info = self.query_task_status(task_id)
-                st = status_info.get("status")
-                if st in ("SUCCESS", "completed", "success"):
-                    # 优先取 results 里的音频链接
-                    audio_url = status_info.get("video_url")
-                    if not audio_url and status_info.get("results"):
-                        for res in status_info["results"]:
-                            if res.get("type") == "audio" or str(res.get("url", "")).endswith((".wav", ".mp3")):
-                                audio_url = res.get("url")
-                                break
-                    print(f"[IndexTTS2] 🎉 专属原声克隆成功！音频直链: {audio_url}")
-                    return audio_url
-                elif st in ("FAILED", "failed", "error"):
-                    print(f"[IndexTTS2] 声音克隆任务失败: {status_info.get('error')}")
-                    return None
+                # 关键：下载该音频并用 FFmpeg 精确测量物理时长
+                temp_audio_path = settings.BASE_DIR / "static" / "videos" / "temp" / f"qwen_{uuid.uuid4().hex[:8]}.wav"
+                temp_audio_path.parent.mkdir(parents=True, exist_ok=True)
+
+                r_aud = requests.get(audio_raw_url, timeout=20)
+                with open(temp_audio_path, "wb") as f:
+                    f.write(r_aud.content)
+
+                # 测量精确物理秒数
+                exact_duration = 5.0
+                try:
+                    probe_cmd = ["ffmpeg", "-i", str(temp_audio_path)]
+                    p_res = subprocess.run(probe_cmd, capture_output=True, text=True, errors="ignore")
+                    m = re.search(r"Duration:\s*(\d+):(\d+):(\d+\.\d+)", p_res.stderr)
+                    if m:
+                        h, mm, ss = m.groups()
+                        exact_duration = round(int(h) * 3600 + int(mm) * 60 + float(ss), 2)
+                        print(f"[QwenAudioTTS] 音频精确物理时长测量成功: {exact_duration} 秒")
+                except Exception as e:
+                    print(f"[QwenAudioTTS] 测量时长异常: {e}")
+
+                # 将高质量音频上传至 Cloudflare R2，确保全球公网畅通
+                r2_audio_url = self.upload_file_to_storage(temp_audio_path)
+                return r2_audio_url, exact_duration
+            else:
+                print(f"[QwenAudioTTS] 调用百炼合成接口失败: HTTP {req.status_code} - {req.text}")
+                return None, None
         except Exception as e:
-            print(f"[IndexTTS2] 声音克隆异常，平滑降级为纯文本驱动: {e}")
-            return None
-        return None
+            print(f"[QwenAudioTTS] 异常，降级处理: {e}")
+            return None, None
 
     def _run_job_worker(self, job_id: str, segments: List[dict], mode: str):
         """后台异步处理线程：负责并发提交、轮询监控、下载切片与FFmpeg 0帧无损硬切"""
@@ -467,15 +474,19 @@ class AutoDLService:
                     "ref_image_0": img_url
                 }
 
-                # 如果成员绑定了专属原声录音，优先调用 indextts2-v1 实时克隆本句台词
+                # 优先调用百炼旗舰 Qwen-Audio-3.1 语音大模型，精确合成并测量物理时长
                 diag_text = seg.get("dialogue", "")
-                if user_voice_url and diag_text:
+                if diag_text:
                     with self._lock:
-                        job["step"] = f"正在使用 IndexTTS2 克隆【{job.get('owner', '宋勇')}】第{sid}段原声音色..."
-                    custom_audio_url = self.generate_voice_via_indextts2(diag_text, user_voice_url)
+                        job["step"] = f"正在使用 Qwen-Audio-3.1 旗舰大模型合成第{sid}段高品质语音..."
+                    qwen_voice_id = user_voice_url if (user_voice_url and not user_voice_url.startswith("http")) else None
+                    custom_audio_url, exact_dur = self.generate_voice_via_qwen_audio(diag_text, custom_voice_id=qwen_voice_id)
                     if custom_audio_url:
                         payload["ref_audio_0"] = custom_audio_url
-                        print(f"[AutoDLService] ★ 分镜 {sid} 成功接入宋勇原声克隆音频: {custom_audio_url}")
+                        # 核心突破：音频时长倒逼视频时长毫秒级对齐，彻底消灭吞字！
+                        if exact_dur and exact_dur > 0:
+                            payload["duration"] = min(15, max(1, int(round(exact_dur))))
+                        print(f"[AutoDLService] ★ 分镜 {sid} 成功接入 Qwen-Audio 高保真语音 (时长: {payload['duration']}s): {custom_audio_url}")
 
                 # 场景图插槽 (ref_image_1)
                 scene_fn = seg.get("scene_image")

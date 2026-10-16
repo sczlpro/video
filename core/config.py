@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     # 外部算力配置 (AutoDL)
     AUTODL_TOKEN: str = os.getenv("AUTODL_TOKEN", "4jOhvQKivGDj8NeCzCC3XtQVbKW7uIlspYQcAlW0vQvNSVQK")
 
+    # 阿里云百炼旗舰音频配置 (Qwen-Audio-3.1-TTS-Flash)
+    DASHSCOPE_API_KEY: str = os.getenv("DASHSCOPE_API_KEY", "sk-ws-H.PYDDEER.GHs7.MEYCIQC_ReYeKULRzPWyJMH922-haEb_TvRvRRJBny5f5PSQYAIhANJSB7JRSfYsQs6vX7oSa5s8EluyM8B8fjGVPJ-xsYHQ")
+    DASHSCOPE_TTS_URL: str = os.getenv("DASHSCOPE_TTS_URL", "https://dashscope.aliyuncs.com/api/v1/services/audio/tts/SpeechSynthesizer")
+
     @property
     def is_r2_configured(self) -> bool:
         """检查 R2 所需凭证是否完整配置"""
