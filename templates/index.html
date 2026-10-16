@@ -827,8 +827,9 @@
             <div style="margin-bottom: 12px;">
                 <label style="font-size: 11px; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 4px;">接口 Base URL：</label>
                 <input type="text" id="inputLLMBaseUrl" placeholder="如: https://api.deepseek.com/v1" style="width: 100%; padding: 9px 12px; background: #0c0c12; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; color: #fff; font-size: 12px; outline: none; box-sizing: border-box;">
-                <div style="display: flex; gap: 6px; margin-top: 6px;">
-                    <span onclick="applyLLMPreset('deepseek')" style="font-size: 10px; color: #38bdf8; background: rgba(56,189,248,0.15); padding: 2px 6px; border-radius: 4px; cursor: pointer;">DeepSeek 官方</span>
+                <div style="display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap;">
+                    <span onclick="applyLLMPreset('deepseek')" style="font-size: 10px; color: #38bdf8; background: rgba(56,189,248,0.15); padding: 2px 6px; border-radius: 4px; cursor: pointer;">DeepSeek-V3</span>
+                    <span onclick="applyLLMPreset('deepseek_r1')" style="font-size: 10px; color: #f59e0b; background: rgba(245,158,11,0.15); padding: 2px 6px; border-radius: 4px; cursor: pointer;">DeepSeek-R1 (深度推理)</span>
                     <span onclick="applyLLMPreset('qwen')" style="font-size: 10px; color: #a855f7; background: rgba(168,85,247,0.15); padding: 2px 6px; border-radius: 4px; cursor: pointer;">阿里通义千问</span>
                     <span onclick="applyLLMPreset('siliconflow')" style="font-size: 10px; color: #10b981; background: rgba(16,185,129,0.15); padding: 2px 6px; border-radius: 4px; cursor: pointer;">硅基流动</span>
                 </div>
@@ -1250,7 +1251,11 @@
         const LLM_PRESETS = {
             deepseek: {
                 base_url: "https://api.deepseek.com/v1",
-                model: "deepseek-chat"
+                model: "deepseek-chat" // 官方已将 deepseek-v3 / deepseek-chat 统一定向至最新的 V3
+            },
+            deepseek_r1: {
+                base_url: "https://api.deepseek.com/v1",
+                model: "deepseek-reasoner" // DeepSeek-R1 深度思考最新旗舰
             },
             qwen: {
                 base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1",

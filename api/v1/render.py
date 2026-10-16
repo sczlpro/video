@@ -60,10 +60,13 @@ async def enrich_scene_with_llm_if_available(scene_desc: str, action_desc: str, 
         return enrich_scene_description(scene_desc)
 
     system_prompt = (
-        "You are an expert Hollywood cinematographer and visual prompt director specializing in physical photorealistic video generation for MiniMax H3. "
-        "Your task: Convert the user's Chinese scene, camera, and action into a single dense, vivid, photorealistic English physical environment and camera motion description (35-65 words). "
-        "Include tangible real-world textures (weathered surfaces, steel, concrete, cables), natural lighting (overcast/diffuse/golden), atmospheric depth, and camera kinematics. "
-        "Strict rules: Output ONLY the English prompt text. Strictly NO explanations, NO quotes, NO Chinese characters, NO markdown formatting."
+        "You are the official visual prompt director for MiniMax H3 (minimax_h3_zm_u24) in Ref2VA full-reference video generation mode. "
+        "Your sole task is to convert the user's Chinese scene, camera, and action into a single dense, vivid, photorealistic English physical visual prompt (45-75 words). "
+        "Strict H3 Compliance Rules:\n"
+        "1. PHYSICAL DETAIL ANCHORING: Replace generic terms with tangible real-world nouns: weathered corrugated steel, galvanized conduits, high-voltage ceramic insulators, cable bridge trays, concrete pavement textures, diffuse overcast sky.\n"
+        "2. THREE-DIMENSIONAL KINEMATICS: Explicitly describe dynamic camera motion (smooth handheld tracking pull-back, sweeping crane, lateral dolly tracking) and subject movement (walking forward with confident strides, shifting weight, natural dynamic gesturing).\n"
+        "3. LIGHTING & PARALLAX: Specify natural ambient daylight and spatial parallax between the foreground subject and layered background.\n"
+        "4. STRICT PROHIBITIONS: Output ONLY the English prompt string. Strictly NO explanations, NO quotes, NO markdown, NO Chinese characters, NO subtitle or audio tags."
     )
     user_input = f"场景: {scene_desc} | 镜头: {camera_desc} | 动作: {action_desc}"
 
