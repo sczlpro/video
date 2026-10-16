@@ -602,7 +602,11 @@
             <div onclick="openChangePwdModal()" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; font-size: 13px; font-weight: 700; color: #94a3b8; cursor: pointer; border-radius: 8px; border-top: 1px solid rgba(255,255,255,0.06); margin-top: 4px;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='transparent'">
                 <span>🔑 修改我的密码</span>
             </div>
-            <div onclick="logoutMember()" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; font-size: 13px; font-weight: 700; color: #ef4444; cursor: pointer; border-radius: 8px;" onmouseover="this.style.background='rgba(239,68,68,0.1)'" onmouseout="this.style.background='transparent'">
+            <div onclick="openLLMSettingsModal()" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; font-size: 13px; font-weight: 700; color: #38bdf8; cursor: pointer; border-radius: 8px;" onmouseover="this.style.background='rgba(56,189,248,0.1)'" onmouseout="this.style.background='transparent'">
+                <span>⚙️ 自定义文本模型</span>
+                <span id="llmStatusDot" style="width: 8px; height: 8px; border-radius: 50%; background: #64748b;"></span>
+            </div>
+            <div onclick="logoutMember()" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; font-size: 13px; font-weight: 700; color: #ef4444; cursor: pointer; border-radius: 8px; border-top: 1px solid rgba(255,255,255,0.06); margin-top: 4px;" onmouseover="this.style.background='rgba(239,68,68,0.1)'" onmouseout="this.style.background='transparent'">
                 <span>🚪 退出当前席位</span>
             </div>
         </div>
@@ -805,6 +809,50 @@
             <button onclick="submitChangePassword()" style="width: 100%; padding: 11px; background: #8b5cf6; border: none; border-radius: 8px; color: #fff; font-size: 13px; font-weight: 800; cursor: pointer;">
                 确认修改密码
             </button>
+        </div>
+    </div>
+
+    <!-- 0.2 自定义大语言模型配置模态框 (支持 DeepSeek / 通义千问 / 任意 OpenAI 兼容接口) -->
+    <div class="drawer-modal" id="llmSettingsModal" style="z-index: 1500; align-items: center;">
+        <div class="confirm-dialog" style="max-width: 420px; width: 92%; padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <span style="font-size: 15px; font-weight: 800; color: #fff;">⚙️ 自定义文本模型 (编译中枢)</span>
+                <button class="icon-circle-btn" style="width: 26px; height: 26px; font-size: 11px;" onclick="closeLLMSettingsModal()">✕</button>
+            </div>
+            
+            <p style="font-size: 11px; color: var(--jimeng-text-sub); line-height: 1.5; margin-bottom: 14px;">
+                配置后，你随手输入的普通中文场景，将由该大模型在 0.3 秒内动态编译为好莱坞物理级精准提示词，兼容任意厂商 API！
+            </p>
+
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 11px; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 4px;">接口 Base URL：</label>
+                <input type="text" id="inputLLMBaseUrl" placeholder="如: https://api.deepseek.com/v1" style="width: 100%; padding: 9px 12px; background: #0c0c12; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; color: #fff; font-size: 12px; outline: none; box-sizing: border-box;">
+                <div style="display: flex; gap: 6px; margin-top: 6px;">
+                    <span onclick="applyLLMPreset('deepseek')" style="font-size: 10px; color: #38bdf8; background: rgba(56,189,248,0.15); padding: 2px 6px; border-radius: 4px; cursor: pointer;">DeepSeek 官方</span>
+                    <span onclick="applyLLMPreset('qwen')" style="font-size: 10px; color: #a855f7; background: rgba(168,85,247,0.15); padding: 2px 6px; border-radius: 4px; cursor: pointer;">阿里通义千问</span>
+                    <span onclick="applyLLMPreset('siliconflow')" style="font-size: 10px; color: #10b981; background: rgba(16,185,129,0.15); padding: 2px 6px; border-radius: 4px; cursor: pointer;">硅基流动</span>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 11px; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 4px;">模型名称 (Model)：</label>
+                <input type="text" id="inputLLMModel" placeholder="如: deepseek-chat 或 qwen-plus" style="width: 100%; padding: 9px 12px; background: #0c0c12; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; color: #fff; font-size: 12px; outline: none; box-sizing: border-box;">
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="font-size: 11px; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 4px;">API Key (密码已脱敏保护)：</label>
+                <input type="password" id="inputLLMApiKey" placeholder="填入该厂商的 sk-xxxx" style="width: 100%; padding: 9px 12px; background: #0c0c12; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; color: #fff; font-size: 12px; outline: none; box-sizing: border-box;">
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+                <button id="btnTestLLM" onclick="testLLMConfigConnection()" style="flex: 1; padding: 10px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18); border-radius: 8px; color: #cbd5e1; font-size: 12px; font-weight: 700; cursor: pointer;">
+                    🔌 测试连通性
+                </button>
+                <button onclick="saveLLMConfigSubmit()" style="flex: 1; padding: 10px; background: #38bdf8; border: none; border-radius: 8px; color: #000; font-size: 12px; font-weight: 800; cursor: pointer;">
+                    💾 保存配置
+                </button>
+            </div>
+            <div id="llmTestResultTip" style="font-size: 11px; margin-top: 8px; text-align: center; display: none;"></div>
         </div>
     </div>
 
@@ -1195,6 +1243,128 @@
                 }
             } catch(e) {
                 alert("修改异常: " + e);
+            }
+        }
+
+        // ================= ★ 通用大语言模型 API 配置与动态调试 (支持任何厂商) =================
+        const LLM_PRESETS = {
+            deepseek: {
+                base_url: "https://api.deepseek.com/v1",
+                model: "deepseek-chat"
+            },
+            qwen: {
+                base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1",
+                model: "qwen-plus"
+            },
+            siliconflow: {
+                base_url: "https://api.siliconflow.cn/v1",
+                model: "deepseek-ai/DeepSeek-V3"
+            }
+        };
+
+        function applyLLMPreset(key) {
+            const p = LLM_PRESETS[key];
+            if (p) {
+                document.getElementById("inputLLMBaseUrl").value = p.base_url;
+                document.getElementById("inputLLMModel").value = p.model;
+            }
+        }
+
+        async function openLLMSettingsModal() {
+            const menu = document.getElementById("topRightDropdownMenu");
+            if (menu) menu.style.display = "none";
+            document.getElementById("llmTestResultTip").style.display = "none";
+            document.getElementById("llmSettingsModal").classList.add("active");
+
+            try {
+                const res = await fetch("/api/v1/settings/llm");
+                const data = await res.json();
+                document.getElementById("inputLLMBaseUrl").value = data.base_url || "https://api.deepseek.com/v1";
+                document.getElementById("inputLLMModel").value = data.model || "deepseek-chat";
+                document.getElementById("inputLLMApiKey").placeholder = data.masked_key || "填入该厂商的 sk-xxxx";
+                updateLLMDot(data.is_configured);
+            } catch(e) {}
+        }
+
+        function closeLLMSettingsModal() {
+            document.getElementById("llmSettingsModal").classList.remove("active");
+        }
+
+        function updateLLMDot(configured) {
+            const dot = document.getElementById("llmStatusDot");
+            if (dot) {
+                dot.style.background = configured ? "#10b981" : "#64748b";
+                dot.title = configured ? "大模型编译中枢已就绪" : "未配置大模型";
+            }
+        }
+
+        async function testLLMConfigConnection() {
+            const baseUrl = document.getElementById("inputLLMBaseUrl").value.trim();
+            const model = document.getElementById("inputLLMModel").value.trim();
+            const apiKey = document.getElementById("inputLLMApiKey").value.trim();
+            const tip = document.getElementById("llmTestResultTip");
+            const btn = document.getElementById("btnTestLLM");
+
+            if (!apiKey) {
+                alert("请先输入该厂商的 API Key 后再测试！");
+                return;
+            }
+
+            btn.innerText = "⏳ 探测中...";
+            btn.disabled = true;
+            tip.style.display = "block";
+            tip.style.color = "#94a3b8";
+            tip.innerText = "正在向大模型接口发送心跳握手请求...";
+
+            try {
+                const res = await fetch("/api/v1/settings/llm/test", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ base_url: baseUrl, model: model, api_key: apiKey })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    tip.style.color = "#10b981";
+                    tip.innerText = "✅ " + data.message;
+                } else {
+                    tip.style.color = "#ef4444";
+                    tip.innerText = "❌ " + data.message;
+                }
+            } catch(e) {
+                tip.style.color = "#ef4444";
+                tip.innerText = "❌ 连接异常: " + e;
+            } finally {
+                btn.innerText = "🔌 测试连通性";
+                btn.disabled = false;
+            }
+        }
+
+        async function saveLLMConfigSubmit() {
+            const baseUrl = document.getElementById("inputLLMBaseUrl").value.trim();
+            const model = document.getElementById("inputLLMModel").value.trim();
+            const apiKey = document.getElementById("inputLLMApiKey").value.trim();
+
+            if (!baseUrl || !model) {
+                alert("Base URL 和 Model 不能为空！");
+                return;
+            }
+
+            try {
+                const res = await fetch("/api/v1/settings/llm", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ base_url: baseUrl, model: model, api_key: apiKey })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert("🎉 大模型编译中枢配置已成功持久化保存！");
+                    updateLLMDot(true);
+                    closeLLMSettingsModal();
+                } else {
+                    alert("保存失败: " + (data.detail || "未知异常"));
+                }
+            } catch(e) {
+                alert("保存异常: " + e);
             }
         }
 

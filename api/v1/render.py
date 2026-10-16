@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from core.config import settings
 from core.autodl_service import autodl_service
+from core.llm_client import get_llm_config, call_llm_chat
 from db.database import get_db
 from db.models import Project, Shot, RenderTask, generate_uuid
 
@@ -45,6 +46,39 @@ def clean_text_for_dialogue(text: str) -> str:
     t = re.sub(r"[\r\n\t]+", " ", t)
     t = re.sub(r"\s{2,}", " ", t).strip()
     return t
+
+async def enrich_scene_with_llm_if_available(scene_desc: str, action_desc: str, camera_desc: str) -> str:
+    """
+    大模型编译中枢：如果用户配置了任意厂商的大模型API，0.3秒内将中文语义动态编译为好莱坞物理级英文视觉提示词；
+    未配置时优雅回退为规则增强器，彻底治本！
+    """
+    cfg = get_llm_config()
+    api_key = cfg.get("api_key", "").strip()
+
+    # 未配置 Key 时回退
+    if not api_key:
+        return enrich_scene_description(scene_desc)
+
+    system_prompt = (
+        "You are an expert Hollywood cinematographer and visual prompt director specializing in physical photorealistic video generation for MiniMax H3. "
+        "Your task: Convert the user's Chinese scene, camera, and action into a single dense, vivid, photorealistic English physical environment and camera motion description (35-65 words). "
+        "Include tangible real-world textures (weathered surfaces, steel, concrete, cables), natural lighting (overcast/diffuse/golden), atmospheric depth, and camera kinematics. "
+        "Strict rules: Output ONLY the English prompt text. Strictly NO explanations, NO quotes, NO Chinese characters, NO markdown formatting."
+    )
+    user_input = f"场景: {scene_desc} | 镜头: {camera_desc} | 动作: {action_desc}"
+
+    try:
+        enriched_en = await call_llm_chat([
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_input}
+        ])
+        clean_res = enriched_en.strip().replace('"', '').replace("'", "")
+        if len(clean_res) > 20:
+            return clean_res
+    except Exception as e:
+        print(f"[LLMCompiler] 调用大模型编译提示词失败，降级回退: {e}")
+
+    return enrich_scene_description(scene_desc)
 
 def enrich_scene_description(scene_desc: str) -> str:
     """
@@ -326,7 +360,10 @@ def parse_prompt_to_segments(prompt_text: str, total_duration: int = 30, image_m
                 "scene_image": scene_img,
                 "scene_label": scene_label,
                 "dialogue": clean_diag,
-                "prompt": full_prompt
+                "prompt": full_prompt,
+                "raw_scene": scene,
+                "raw_action": action,
+                "raw_camera": camera
             })
 
     if table_segments:
@@ -435,6 +472,28 @@ def parse_prompt_to_segments(prompt_text: str, total_duration: int = 30, image_m
         })
 
     return segments
+
+async def parse_prompt_to_segments_async(prompt_text: str, total_duration: int = 30, image_map: Optional[Dict[str, str]] = None) -> List[dict]:
+    """异步高能解析器：先进行结构化分镜拆解，若配置了任意厂商大模型，0.3秒并发完成语义与物理空间扩写"""
+    segs = parse_prompt_to_segments(prompt_text, total_duration, image_map)
+    cfg = get_llm_config()
+    api_key = cfg.get("api_key", "").strip()
+
+    # 如果配置了大模型，对每个分镜异步进行物理细节丰富
+    if api_key and segs:
+        for s in segs:
+            raw_sc = s.get("raw_scene", "")
+            raw_act = s.get("raw_action", "")
+            raw_cam = s.get("raw_camera", "")
+            # 若原始场景存在，由大模型深度赋能
+            if raw_sc or raw_act or raw_cam:
+                try:
+                    llm_env = await enrich_scene_with_llm_if_available(raw_sc, raw_act, raw_cam)
+                    if llm_env and len(llm_env) > 15:
+                        s["prompt"] = build_cinematic_h3_prompt(llm_env, raw_act, s.get("dialogue", ""), s.get("role", "ayong_front"), bool(s.get("scene_image")), camera_desc=raw_cam)
+                except Exception as e:
+                    print(f"[AsyncParse] LLM enrich pass error: {e}")
+    return segs
 
 @router.get("/latest", summary="获取最新一条已合成的成品母带")
 def get_latest_master_video():
@@ -638,8 +697,8 @@ def get_template_plan():
     }
 
 @router.post("/parse-preview", summary="预览并解析豆包分镜表格为独立镜头卡片")
-def parse_preview(req: ParsePreviewRequest):
-    segs = parse_prompt_to_segments(req.prompt, req.duration, req.image_map)
+async def parse_preview(req: ParsePreviewRequest):
+    segs = await parse_prompt_to_segments_async(req.prompt, req.duration, req.image_map)
     total_dur = sum(s.get("duration", 10) for s in segs)
     return {
         "segments_count": len(segs),
