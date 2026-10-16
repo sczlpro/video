@@ -261,8 +261,8 @@ def build_cinematic_h3_prompt(scene_desc: str, action_desc: str, dialogue: str, 
         "NO on-screen text of any kind, NO lower-third text, NO floating characters, NO written words rendered anywhere in the video image."
     )
     speech_rule = (
-        "Voice and dialect specification: The subject (S1) speaks throughout in authentic, colloquial Chongqing dialect (Sichuanese / Southwestern Mandarin), "
-        "with strong local Chongqing accent, natural tone sandhi, and heavy local cadence, strictly NO standard Mandarin pronunciation. "
+        "Voice and speech specification: The subject (S1) speaks in natural, confident, authoritative Mandarin Chinese "
+        "with rich prosody, expressive emotional cadence, and measured investor poise. "
         "From 0.0s the mouth opens naturally in sync with speech, lips move accurately matching the dialogue."
     )
 
