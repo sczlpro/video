@@ -47,23 +47,31 @@ def clean_text_for_dialogue(text: str) -> str:
     return t
 
 def map_action_to_english(action_desc: str, role: str = "ayong_front", has_scene_image: bool = False) -> str:
-    """智能将中文动作与神态描述映射为工业级 H3 英文肢体指令"""
-    if not action_desc:
-        if role == "ayong_side":
-            return "Ayong turns slightly at a 45-degree angle, gesturing with an open palm toward the background environment, delivering the dialogue with sincere, persuasive empathy."
-        return "Ayong speaks calmly and authoritatively, standing steady with hands naturally separated at shoulder width."
+    """智能解析动作描述：优先释放用户传入的真实肢体运动与空间位移，无输入时才使用高动态默认值"""
+    act = action_desc.strip() if action_desc else ""
 
-    act_l = action_desc.lower()
-    if any(k in act_l for k in ["侧身", "指向", "侧面", "45度", "point"]):
-        return "Ayong turns his body slightly at a 45-degree angle, gesturing with an open palm toward the surrounding environment, speaking with deep sincerity and relatable empathy."
-    elif any(k in act_l for k in ["前倾", "笃定", "加重", "严肃", "重点", "电表", "痛点"]):
-        return "Ayong leans slightly forward with a resolute, serious and authoritative investor gaze, using firm downward open-palm gestures to emphasize key spoken words."
-    elif any(k in act_l for k in ["摊手", "摊开", "平稳", "算账", "好处", "方案"]):
-        return "Ayong speaks with calm authoritative composure, holding hands naturally open and separated at shoulder width, talking directly and sincerely to the camera."
-    elif any(k in act_l for k in ["指", "展示", "看", "屋顶", "车间"]):
-        return "Ayong gestures smoothly with an open palm toward the background setting, maintaining steady eye contact and compelling conversational presence."
+    # 如果用户已经传入了英文动作描述（包含 walk / move / point / look / gesture / stand 等），直接尊重用户原生英文！
+    if act and any(k in act.lower() for k in ["walk", "step", "stride", "move", "turning", "pointing", "gesturing", "looking", "inspecting"]):
+        # 净化其中的中文角色修饰
+        clean_act = re.sub(r"@阿勇[^\s]*|@正面|@侧面|@主角[^\s]*", "", act).strip()
+        return clean_act
+
+    # 中文动作指令映射为丰富的高动态三维空间动作
+    act_l = act.lower()
+    if any(k in act_l for k in ["走", "迈步", "前行", "步伐", "巡视", "巡查", "前进", "walk", "step"]):
+        return "The subject is actively walking forward with confident and purposeful strides through the setting, shifting body weight naturally, occasionally looking at the surrounding facility before making sharp, authoritative eye contact with the viewer."
+    elif any(k in act_l for k in ["侧身", "指向", "侧面", "45度", "point", "indicate"]):
+        return "The subject is positioned at a natural dynamic 45-degree angle, gesturing smoothly and decisively toward the machinery and structure in the background, speaking with convincing, relatable investor authority."
+    elif any(k in act_l for k in ["看", "观察", "检查", "检修", "抬头", "环视", "look", "inspect"]):
+        return "The subject inspects the surrounding environmental equipment with a focused, knowledgeable gaze, turning his body toward the camera to deliver the key spoken points with sincere composure."
+    elif any(k in act_l for k in ["前倾", "笃定", "加重", "严肃", "重点", "电表", "痛点", "lean"]):
+        return "The subject shifts his upper body slightly forward in a dynamic stance, gesturing decisively with separated open palms to emphasize core commercial benefits, projecting intense personal presence."
+    elif any(k in act_l for k in ["摊手", "摊开", "平稳", "算账", "好处", "方案", "open"]):
+        return "The subject gestures smoothly with open hands kept naturally separated, his posture relaxed yet commanding, speaking directly and compellingly to the camera."
     else:
-        return "Ayong speaks with authoritative investor confidence and deep sincerity, gesturing smoothly with separated open palms."
+        if role == "ayong_side":
+            return "The subject turns smoothly in a dynamic three-quarter stance, gesturing toward the surrounding facility with authoritative, persuasive confidence."
+        return "The subject delivers the dialogue with lively natural head movements and expressive, separated hand gestures, his posture engaging and authentic."
 
 def resolve_scene_image(img_tag_str: Optional[str], image_map: Dict[str, str], fallback_index: int = 0) -> tuple[Optional[str], Optional[str]]:
     """
@@ -102,56 +110,52 @@ def resolve_scene_image(img_tag_str: Optional[str], image_map: Dict[str, str], f
 
     return None, None
 
-def build_cinematic_h3_prompt(scene_desc: str, action_desc: str, dialogue: str, role: str = "ayong_front", has_scene_image: bool = False) -> str:
+def build_cinematic_h3_prompt(scene_desc: str, action_desc: str, dialogue: str, role: str = "ayong_front", has_scene_image: bool = False, camera_desc: str = "") -> str:
     """
     根据 MiniMax H3 官方规范与 Ref2VA 工业出片标准拼装提示词：
-    1. 纯英文原则：除 <d>[Chinese] 对白外，全篇必须纯英文，严禁任何中文修饰语或 [图片N] 标签；
-    2. 景别解放（解决人物遮挡背景根因）：使用广角环境大景（Wide environmental framing），让镜头主动后拉，展现大半身/站立全貌；
-    3. 场景图优先：明确声明 <Picture 2> 为核心物理环境，建筑结构、宽阔地面、特定设备完全展开，人物自然置于中景；
-    4. 纯净画面铁律：严禁生成假字幕、文字排版、水印、悬浮字；
-    5. 音画零时差：第0秒起同步自然开口，唇形精准吻合。
+    彻底破除固定站桩与僵硬静态机位枷锁，全面释放三维空间运镜与真实人物肢体动态！
     """
+    # 1. 镜头运镜提取与动态释放 (优先尊重用户传入的真实运镜指令，绝不用 static camera 锁死)
+    cam_raw = (camera_desc.strip() if camera_desc else "").strip()
+    if not cam_raw and scene_desc and any(k in scene_desc.lower() for k in ["camera", "tracking", "drone", "pull", "push", "pan", "handheld"]):
+        cam_raw = scene_desc.strip()
+
+    if cam_raw and any(k in cam_raw.lower() for k in ["tracking", "pull", "push", "move", "pan", "orbit", "handheld", "steady", "crane", "drone"]):
+        camera_style = f"Cinematic camera motion: {cam_raw}. Realistic physical documentary texture, natural soft overcast daylight, believable Chongqing ambient lighting."
+    else:
+        # 默认使用具有丰富呼吸感和纵深感的后退手持微震跟拍
+        camera_style = "Cinematic dynamic handheld camera with subtle organic movement, camera smoothly tracking backward with realistic focal depth, natural soft daylight, typical Chongqing overcast sky."
+
+    # 2. 景别与构图规则 (鼓励视差与环境流动，彻底删除 strictly NO camera movement / NO push-in 等死锁词)
     if has_scene_image:
-        # 带有场景图时：使用广角中远景镜头，镜头明显拉远，给大场景腾出广阔空间，人物绝不贴脸
-        camera_style = "Wide environmental shot, static camera at eye level, shot on phone camera with slight handheld micro-shake, expansive depth of field, realistic documentary texture, natural overcast soft daylight, typical Chongqing cloudy weather."
         framing_rule = (
-            "Framing rule, strictly follow: The camera pulls back into an expansive wide-angle view to prioritize the full environment of <Picture 2>. "
-            "The subject (<Picture 1>) stands in the mid-ground, showing his upper body down to his waist and hips, occupying only a moderate portion of the frame without dominating it. "
-            "The surrounding concrete surfaces, roof edges, machinery, pipes, meters, and distant buildings from <Picture 2> remain widely visible, unobstructed, and prominent. "
-            "Keep a constant wide conversational distance, strictly NO push-in, NO zoom, NO close-up, NO camera movement toward the face."
+            "Spatial framing: The scene takes place within the authentic physical environment established in <Picture 2>. "
+            "The camera maintains a natural documentary distance, framing the subject in relation to the expansive machinery, roof surfaces, or structural setting of <Picture 2>. "
+            "The surrounding equipment, background depth, and architectural lines move naturally with the camera motion, creating rich spatial parallax."
         )
         env_rule = (
-            "Environment and physical setting: <Picture 2> defines the exact physical environment. "
-            "The background architectural structure, roof surfaces, ground textures, machinery, equipment, lighting, and spatial perspective strictly replicate and follow <Picture 2> with high fidelity."
+            "Environment and physical setting: <Picture 2> defines the exact physical location. "
+            "The environmental architecture, concrete textures, steel structures, and overhead sky strictly reflect <Picture 2>."
         )
     else:
-        # 当没有上传场景图时：全面释放模型的运镜与空间深度，优先采用传入的英文场景和运镜指令
-        env_clean = scene_desc.strip() if scene_desc else "Chongqing high-ceiling industrial factory rooftop and manufacturing workshop surroundings, rolling green hills in far distance"
-        # 提取运镜指令（如果scene_desc中包含camera/cinematic/drone等词汇，直接提炼为camera_style）
-        if any(k in env_clean.lower() for k in ["drone", "crane", "pull-back", "tracking", "wide-angle", "handheld"]):
-            camera_style = f"Cinematic camera work, {env_clean}. Realistic documentary texture, natural overcast soft daylight, typical Chongqing cloudy weather."
-            env_rule = f"Environment: {env_clean}. Absolutely no shopfront, no storefront signage, no commercial street."
-        else:
-            camera_style = "Medium-wide shot, static camera at eye level, shot on phone camera with slight handheld micro-shake, realistic documentary texture, natural overcast soft daylight, typical Chongqing cloudy weather."
-            env_rule = f"Environment: {env_clean}. Typical Chongqing county town industrial surroundings, rolling green hills in far distance. Absolutely no shopfront, no storefront signage, no commercial street."
-
+        env_clean = scene_desc.strip() if scene_desc else "Expansive industrial factory rooftop and manufacturing workshop surroundings in Chongqing, weathered corrugated metal tiles, ventilation conduits, distant rolling green hills under cloudy sky"
         framing_rule = (
-            "Framing rule, strictly follow: the subject is placed naturally in the center area, framed from the waist up in a medium-wide shot; "
-            "his whole head, face and shoulders remain completely inside the frame with comfortable margins on all sides; "
-            "the camera maintains a stable and expansive perspective, strictly NO push-in, NO zoom, NO close-up, NO moving toward the face."
+            "Spatial framing: The camera frames the subject in a lively environmental composition, giving ample prominence to the sprawling industrial backdrop and architectural depth. "
+            "The camera motion reveals rich spatial perspective and dynamic parallax between the subject and the layered background."
         )
+        env_rule = f"Environment: {env_clean}. Authentic Sichuan-Chongqing industrial surroundings with rolling hills in the background. Absolutely no storefront signage, no commercial street."
 
+    # 3. 主角与肢体动作 (释放走动、转身、观察、指点等自然动态)
     character_desc = (
-        "The middle-aged Chinese businessman Ayong in a clean dark polo shirt (<Picture 1>), weathered and experienced face, "
-        "calm and resolute expression, jaw relaxed and lips naturally closed when not speaking, strictly NO exaggerated smiling or laughing, "
-        "demonstrating deep, sincere, and authoritative investor presence."
+        "The subject (<Picture 1>) is an experienced, authoritative businessman dressed in clean professional attire, "
+        "weathered yet resolute facial expression, delivering his message with deep, trustworthy credibility."
     )
 
     action_en = map_action_to_english(action_desc, role, has_scene_image)
     gesture_rule = (
-        f"Subject action: {action_en} "
+        f"Subject physical action: {action_en} "
         "Hand gesture rule: when gesturing with hands, keep hands naturally separated with comfortable distance wider than shoulders, "
-        "open palms pressing downward firmly or gesturing outward; both hands strictly NEVER clasp together, NEVER hold each other, NEVER form traditional martial arts fist-and-palm salute."
+        "gesturing expressively outward or emphasizing points naturally; both hands strictly NEVER clasp together, NEVER hold each other, NEVER form traditional martial arts fist-and-palm salute."
     )
 
     clean_screen_rule = (
@@ -164,7 +168,6 @@ def build_cinematic_h3_prompt(scene_desc: str, action_desc: str, dialogue: str, 
         "From 0.0s the mouth opens naturally in sync with speech, lips move accurately matching the dialogue."
     )
 
-    # 清洗台词中可能遗留的标签
     clean_dialogue = clean_text_for_dialogue(dialogue)
     if clean_dialogue:
         dialogue_tag = f"<d>[Chinese] {clean_dialogue}</d>"
@@ -272,9 +275,9 @@ def parse_prompt_to_segments(prompt_text: str, total_duration: int = 30, image_m
                     scene_img = f"场景_{m_scene.group(1)}.jpg"
                     scene_label = f"场景_{m_scene.group(1)}"
 
-            # 拼装工业级电影感提示词
+            # 拼装工业级电影感提示词 (传入解析出的 camera 运镜指令，全面赋能三维动态)
             clean_diag = clean_text_for_dialogue(dialogue)
-            full_prompt = build_cinematic_h3_prompt(scene, action, clean_diag, ref_role, bool(scene_img))
+            full_prompt = build_cinematic_h3_prompt(scene, action, clean_diag, ref_role, bool(scene_img), camera_desc=camera)
 
             table_segments.append({
                 "id": len(table_segments) + 1,
