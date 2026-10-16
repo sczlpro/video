@@ -534,8 +534,32 @@ async def parse_prompt_to_segments_async(prompt_text: str, total_duration: int =
     return segs
 
 @router.get("/latest", summary="获取最新一条已合成的成品母带")
-def get_latest_master_video():
-    """获取最新成片，供前端播放器初始加载和随时下载"""
+def get_latest_master_video(db: Session = Depends(get_db)):
+    """获取最新成片，优先返回带有 R2 全球 CDN 与客户端持久缓存的直链"""
+    # 1. 优先查数据库中最新完成的 project
+    try:
+        p = db.query(Project).filter(Project.final_video_url.isnot(None)).order_by(Project.created_at.desc()).first()
+        if p and p.final_video_url:
+            filename = Path(p.final_video_url).name
+            videos_dir = settings.BASE_DIR / "static" / "videos"
+            local_file = videos_dir / filename
+            size_mb = round(local_file.stat().st_size / (1024 * 1024), 2) if local_file.exists() else 0
+            
+            poster_fn = f"{Path(filename).stem}_poster.jpg"
+            poster_url = f"https://{settings.CF_R2_PUBLIC_DOMAIN}/posters/{poster_fn}" if settings.is_r2_configured else f"/static/videos/{poster_fn}"
+
+            return {
+                "has_video": True,
+                "filename": filename,
+                "video_url": p.final_video_url,
+                "download_url": p.final_video_url,
+                "poster_url": poster_url,
+                "size_mb": size_mb,
+                "created_at": p.created_at.strftime("%Y-%m-%d %H:%M:%S") if p.created_at else ""
+            }
+    except Exception as e:
+        print(f"[LatestVideo] 读取最新项目异常: {e}")
+
     videos_dir = settings.BASE_DIR / "static" / "videos"
     if not videos_dir.exists():
         return {"has_video": False}
@@ -548,11 +572,16 @@ def get_latest_master_video():
 
     if mp4_files:
         latest = mp4_files[0]
+        # 如果 R2 已配置，优先走全球 CDN
+        v_url = f"https://{settings.CF_R2_PUBLIC_DOMAIN}/videos/{latest.name}" if settings.is_r2_configured else f"/static/videos/{latest.name}"
+        poster_fn = f"{latest.stem}_poster.jpg"
+        poster_url = f"https://{settings.CF_R2_PUBLIC_DOMAIN}/posters/{poster_fn}" if settings.is_r2_configured else f"/static/videos/{poster_fn}"
         return {
             "has_video": True,
             "filename": latest.name,
-            "video_url": f"/static/videos/{latest.name}",
-            "download_url": f"/static/videos/{latest.name}",
+            "video_url": v_url,
+            "download_url": v_url,
+            "poster_url": poster_url,
             "size_mb": round(latest.stat().st_size / (1024 * 1024), 2),
             "created_at": datetime.fromtimestamp(latest.stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S")
         }

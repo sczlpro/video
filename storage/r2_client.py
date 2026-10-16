@@ -94,7 +94,12 @@ class R2StorageClient:
             content_type = mime or "application/octet-stream"
 
         clean_key = remote_key.lstrip("/")
-        extra_args = {"ContentType": content_type}
+        # 针对成片视频和海报，设置强缓存策略：public, max-age=2592000 (30天), immutable，手机端永久秒开！
+        cache_control = "public, max-age=2592000, immutable" if clean_key.startswith(("videos/", "posters/")) else "public, max-age=86400"
+        extra_args = {
+            "ContentType": content_type,
+            "CacheControl": cache_control
+        }
 
         with open(local_path, "rb") as f:
             self._client.upload_fileobj(
@@ -115,11 +120,13 @@ class R2StorageClient:
         """上传内存字节流至 R2"""
         self._ensure_client()
         clean_key = remote_key.lstrip("/")
+        cache_control = "public, max-age=2592000, immutable" if clean_key.startswith(("videos/", "posters/")) else "public, max-age=86400"
         self._client.put_object(
             Bucket=self.bucket_name,
             Key=clean_key,
             Body=data,
-            ContentType=content_type
+            ContentType=content_type,
+            CacheControl=cache_control
         )
         return self.get_public_url(clean_key)
 
