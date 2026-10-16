@@ -101,7 +101,7 @@
             border-color: rgba(255, 255, 255, 0.18);
         }
 
-        /* 中央视口：固定为标准 16:9 横屏剧场画幅，无论播放还是占位，绝不上下撑爆手机屏幕 */
+        /* 中央视口：竖屏优先自适应视口，最大化利用手机屏幕高度，彻底解除死板 16:9 限制 */
         .viewport-area {
             flex: 1;
             position: relative;
@@ -111,24 +111,26 @@
             justify-content: center;
             overflow: hidden;
             background: transparent;
-            padding: 6px 14px;
+            padding: 8px 12px;
             width: 100%;
             box-sizing: border-box;
+            min-height: 0;
         }
 
         .video-player-box {
             width: 100%;
-            max-width: 460px;
-            aspect-ratio: 16/9;
+            max-width: 420px;
+            height: 100%;
+            max-height: 48vh;
             position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #09090e;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
+            background: #06060a;
+            border: 1.5px solid rgba(139, 92, 246, 0.4);
+            border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 10px 32px rgba(0, 0, 0, 0.7);
+            box-shadow: 0 0 25px rgba(139, 92, 246, 0.25), 0 16px 45px rgba(0, 0, 0, 0.95);
         }
 
         #masterVideoPlayer {
@@ -334,13 +336,13 @@
         }
 
         .prompt-card {
-            background: var(--jimeng-card-bg);
-            border: 1px solid var(--jimeng-border);
+            background: #111116;
+            border: 1.5px solid rgba(255, 255, 255, 0.18);
             border-radius: 20px;
-            padding: 14px 18px 12px 18px;
+            padding: 12px 16px 10px 16px;
             backdrop-filter: blur(20px);
             position: relative;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.12);
         }
 
         .prompt-input-container {
@@ -580,8 +582,7 @@
         <!-- 左侧当前席位身份徽标 (点击可切换成员或修改密码) -->
         <div onclick="openMemberSwitchModal()" style="display: flex; align-items: center; gap: 6px; cursor: pointer; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 9999px;" title="点击切换席位或修改密码">
             <span style="font-size: 13px;">👤</span>
-            <span id="currentMemberNameLabel" style="font-size: 12px; font-weight: 800; color: #f1f5f9;">宋勇</span>
-            <span style="font-size: 9px; color: #a855f7; border: 1px solid rgba(168,85,247,0.4); border-radius: 4px; padding: 0 4px;">席位</span>
+            <span id="currentMemberNameLabel" style="font-size: 13px; font-weight: 800; color: #f1f5f9;">宋勇</span>
         </div>
 
         <!-- 右侧横向三个点主菜单按钮 (···) -->
@@ -659,19 +660,12 @@
         <!-- 主提示词卡片 (纯净输入框，杜绝混杂加号) -->
         <div class="prompt-card" style="width: 100%;">
             
-            <!-- 提示词工具条 (左侧：一键写文案灵感入口；右侧：字数与全屏) -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                <!-- ✨ 封成电器·AI金牌编剧灵感按钮 -->
-                <button onclick="openAIWriterModal()" style="display: inline-flex; align-items: center; gap: 5px; background: linear-gradient(135deg, rgba(168,85,247,0.25) 0%, rgba(56,189,248,0.2) 100%); border: 1px solid rgba(168,85,247,0.45); color: #c084fc; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 9999px; cursor: pointer; box-shadow: 0 0 10px rgba(168,85,247,0.15);">
-                    <span>✨ AI金牌编剧 (一键出分镜)</span>
+            <!-- 提示词工具条 (字数与全屏查看) -->
+            <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 4px; gap: 8px;">
+                <span id="wordsCountBadge" style="font-size: 11px; color: #94a3b8; font-weight: 700;">0 字</span>
+                <button id="btnExpandPrompt" onclick="openFullscreenPromptModal()" style="display: none; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #cbd5e1; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 6px; cursor: pointer;" title="全屏查看与编辑长提示词">
+                    ⛶ 全屏
                 </button>
-
-                <div style="display: flex; align-items: center; gap: 6px;">
-                    <span id="wordsCountBadge" style="font-size: 10px; color: #94a3b8; font-weight: 700;">0 字</span>
-                    <button id="btnExpandPrompt" onclick="openFullscreenPromptModal()" style="display: none; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #cbd5e1; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 6px; cursor: pointer;" title="全屏查看与编辑长提示词">
-                        ⛶ 全屏
-                    </button>
-                </div>
             </div>
 
             <!-- 场景图与角色占位符高亮输入区 (严格限制手机端最大高度占屏1/3) -->
@@ -688,8 +682,14 @@
                 ></textarea>
             </div>
 
-            <!-- 底部操作工具栏 (右下角核心发牌大按钮) -->
-            <div class="status-pill-row" style="display: flex; justify-content: flex-end; align-items: center; border-top: none; margin-top: 4px; padding-top: 0;">
+            <!-- 底部操作工具栏 (左侧：AI文案；右侧：生成出片) -->
+            <div class="status-pill-row" style="display: flex; justify-content: space-between; align-items: center; border-top: none; margin-top: 8px; padding-top: 0;">
+                <!-- 左侧 AI文案 按钮 (无图标，纯文字简约高质感) -->
+                <button onclick="openAIWriterModal()" style="display: inline-flex; align-items: center; justify-content: center; background: rgba(168, 85, 247, 0.16); border: 1px solid rgba(168, 85, 247, 0.45); color: #c084fc; font-size: 12px; font-weight: 800; padding: 7px 14px; border-radius: 10px; cursor: pointer; transition: all 0.2s ease;">
+                    AI文案
+                </button>
+
+                <!-- 右侧 发牌生成 按钮 -->
                 <button class="btn-generate-main" id="btnSubmitMain" onclick="openConfirmDialog()">
                     <span>生成</span>
                 </button>
@@ -1483,9 +1483,8 @@
             // 1. 若未设置主角形象，显示一个轻量级“＋ 主角形象”加号卡片
             if (!mainRoleData.hasRole) {
                 container.innerHTML = `
-                    <button onclick="openAddRoleModal()" style="display: flex; align-items: center; gap: 5px; background: rgba(168, 85, 247, 0.15); border: 1px dashed #a855f7; color: #c084fc; padding: 4px 10px; border-radius: 9999px; font-size: 11px; font-weight: 700; cursor: pointer;">
-                        <span style="font-size: 14px; font-weight: 800; line-height: 1;">＋</span>
-                        <span>上传主角形象</span>
+                    <button onclick="openAddRoleModal()" style="width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(168, 85, 247, 0.15); border: 1.5px dashed #a855f7; color: #c084fc; cursor: pointer; padding: 0;" title="点击设置主角出镜形象">
+                        <span style="font-size: 18px; font-weight: 800; line-height: 1;">＋</span>
                     </button>
                 `;
                 return;
