@@ -359,12 +359,9 @@ def parse_prompt_to_segments(prompt_text: str, total_duration: int = 30, image_m
 
             clean_diag = clean_text_for_dialogue(dialogue)
 
-            # ★ 语速安全自适应兜底：汉字朗读按 3.8字/秒 + 标点停顿估算
-            # 如果表格写的秒数明显不够把这段话念完，智能自动扩充到足够秒数（上限15秒），彻底杜绝台词被掐断！
-            c_count = len(re.sub(r"[^\u4e00-\u9fa5]", "", clean_diag))
-            p_count = len(re.findall(r"[，。！？、；]", clean_diag))
-            min_needed_dur = int(round(c_count / 3.8 + p_count * 0.25)) if c_count > 0 else parsed_dur
-            dur = max(parsed_dur, min(15, min_needed_dur))
+            # 铁律：严格以用户表格设定的时间为绝对准则，绝不私自篡改扩大时长！
+            # 总时长严格受控于用户输入的分镜表格（如 0-5s, 5-10s, 10-15s，各段严格5秒，总长严格15秒）
+            dur = parsed_dur
 
             # 1. 角色智能判断: 严格按 @侧面 / @正面 / @阿勇侧面 / @阿勇正面 精准锁定机位
             if any(k in line for k in ["@侧面", "@阿勇侧面", "@阿勇_侧面", "@阿勇_45度"]):
