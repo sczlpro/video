@@ -1554,6 +1554,12 @@
             const file = event.target.files[0];
             if (!file) return;
 
+            const voiceLbl = document.getElementById("voiceStatusLabel");
+            if (voiceLbl) {
+                voiceLbl.innerText = "⏳ 正在上传并绑定原声录音...";
+                voiceLbl.style.color = "#fbbf24";
+            }
+
             const fd = new FormData();
             fd.append("file", file);
             fd.append("category", "voice");
@@ -1575,16 +1581,23 @@
                         })
                     });
 
-                    const voiceLbl = document.getElementById("voiceStatusLabel");
                     if (voiceLbl) {
                         voiceLbl.innerText = "已成功绑定原声录音 (已激活)";
                         voiceLbl.style.color = "#10b981";
                     }
                     alert("🎉 专属原声音频绑定成功！后续出片将自动使用 IndexTTS2 驱动您本人的声音讲话！");
                 } else {
+                    if (voiceLbl) {
+                        voiceLbl.innerText = "上传失败，请重试";
+                        voiceLbl.style.color = "#ef4444";
+                    }
                     alert("录音上传失败: " + (data.detail || "未知异常"));
                 }
             } catch(e) {
+                if (voiceLbl) {
+                    voiceLbl.innerText = "上传异常，请重试";
+                    voiceLbl.style.color = "#ef4444";
+                }
                 alert("录音上传异常: " + e);
             }
         }

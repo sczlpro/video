@@ -271,15 +271,23 @@ class AutoDLService:
             return None
 
         clean_text = prompt_text.strip()
+
+        # 核心保证：voice_sample_url 必须是可从公网下载的真实直链，如果是 /static/ 相对路径，转换为 R2 或当前公网绝对地址
+        real_voice_url = voice_sample_url
+        if voice_sample_url.startswith("/static/"):
+            local_fp = settings.BASE_DIR / voice_sample_url.lstrip("/")
+            if local_fp.exists():
+                real_voice_url = self.upload_file_to_storage(local_fp)
+
         payload = {
             "prompt_text": clean_text,
-            "prompt_simple": voice_sample_url,
+            "prompt_simple": real_voice_url,
             "emo_control_method": "与音色参考音频相同",
             "emo_calm": 0.3
         }
 
         try:
-            print(f"[IndexTTS2] 正在向 indextts2-v1 提交专属声音克隆: '{clean_text[:20]}...' (参考音: {voice_sample_url})")
+            print(f"[IndexTTS2] 正在向 indextts2-v1 提交专属声音克隆: '{clean_text[:20]}...' (参考音公网: {real_voice_url})")
             task_id = self.submit_autodl_workflow("indextts2-v1", payload)
             if not task_id:
                 return None
@@ -292,7 +300,7 @@ class AutoDLService:
                 st = status_info.get("status")
                 if st in ("SUCCESS", "completed", "success"):
                     # 优先取 results 里的音频链接
-                    audio_url = status_info.get("video_url") # query_task_status 默认字段
+                    audio_url = status_info.get("video_url")
                     if not audio_url and status_info.get("results"):
                         for res in status_info["results"]:
                             if res.get("type") == "audio" or str(res.get("url", "")).endswith((".wav", ".mp3")):
