@@ -1,6 +1,7 @@
 import math
 import json
 import re
+from pathlib import Path
 from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
@@ -17,6 +18,91 @@ class GenerateScriptRequest(BaseModel):
     category: str = Field(..., description="业务线: RESIDENTIAL_CQ 或 COMMERCIAL_SC_CQ")
     hook_id: str = Field(..., description="Hook 标识")
     custom_industry: Optional[str] = "机械与注塑制造"
+
+class QuickAIWriterRequest(BaseModel):
+    category: str = Field(..., description="业务线: RESIDENTIAL_CQ (重庆自建房) 或 COMMERCIAL_SC_CQ (川渝工商业)")
+    style: str = Field(default="pain_point", description="风格: pain_point (痛点共鸣), case_story (闪电案例), value_dry (干货拆招), anti_scam (撕套路反认知), trust_cta (10年老店强号召)")
+
+def load_local_knowledge_base() -> str:
+    """动态读取本地知识库所有真实 Markdown 文件，支持用户随时修改随时生效！"""
+    kb_dir = Path(r"C:\Users\Administrator\Desktop\文案\知识库")
+    if not kb_dir.exists():
+        return ""
+    
+    combined_knowledge = []
+    for md_file in sorted(kb_dir.glob("*.md")):
+        try:
+            content = md_file.read_text(encoding="utf-8")
+            combined_knowledge.append(f"=== 知识库板块: {md_file.name} ===\n{content}\n")
+        except Exception:
+            pass
+    return "\n".join(combined_knowledge)
+
+@router.post("/generate-quick-ai-script", summary="★ 网页端一键调用DeepSeek与本地知识库，秒出15秒80字实战分镜表格")
+async def generate_quick_ai_script(req: QuickAIWriterRequest):
+    """
+    网页端一键生成：
+    1. 动态注入桌面【文案/知识库/】下的真实数据（重庆分时电价、初装费、租金、真实案例、防骗秘籍）；
+    2. 严格遵循 15 秒总长、75~88 字物理死线；
+    3. 直接输出 100% 纯中文 TSV 表格，一键填入输入框，直接点击即可生成！
+    """
+    kb_text = load_local_knowledge_base()
+
+    system_prompt = (
+        "你现在是重庆江津珞璜【封成电器】（实体店开业整整10年）的店主老陈/宋勇本人兼首席金牌编剧！\n"
+        "你的任务是为你的短视频账号写一条极具杀伤力、完播率极高的15秒获客口播分镜脚本。\n\n"
+        "【必须调用的本地真实事实与知识库数据（严禁虚构乱编）】：\n"
+        f"{kb_text}\n\n"
+        "【四大不可逾越的死线铁律】：\n"
+        "1. 总时长与字数绝对控制：\n"
+        "   - 所有分镜时长相加必须【严格等于 15 秒】（如 0-4s + 4-11s + 11-15s，或 0-5s + 5-11s + 11-15s）；\n"
+        "   - 所有镜头的口播台词总汉字数必须【严格卡死在 75 ~ 86 字之间】（按4字/秒计算），绝对不能超过88字，多一个字视频模型就念不完！\n"
+        "2. 业务边界严格区分：\n"
+        "   - 若是重庆自建房户用：发出来的电全额上网业主不能自己用！核心利益必须是【初装补贴费打卡 + 每年固定屋顶租金 + 免费白得一个高大隔热防雨阳光棚露台】！\n"
+        "   - 若是川渝工商业大厂房：屋顶绝对没有租金！核心利益必须是【资方全资建站零垫资零负债，白天高负荷生产直接用折上折便宜电，一度电省两三毛，一年省出大几万乃至十来万真金白银】！\n"
+        "3. 实体店信誉背书与高转化号召（铁律）：\n"
+        "   - 绝不在视频里邀约用户来店里坐（门槛太高没人跑）；\n"
+        "   - 必须在结尾顺嘴提一嘴【我在珞璜开封成电器十年了，跑得了和尚跑不了庙】立住千斤信任，随后立刻引导【评论区留个屋顶面积我帮你算算】或【直接发私信】，行动门槛最低，转化率最高！\n"
+        "4. 输出格式铁律（严禁任何英文代码）：\n"
+        "   - 必须且只能输出包含表头的标准 TSV 文本表格，严禁任何客套话、前言或总结！\n"
+        "   - 表格所有列（包括镜头运动）必须全部使用生动的纯中文通俗大白话；\n"
+        "   - 台词栏必须是纯粹干净的中文汉字，绝对严禁出现 <font>, <b>, <d>[Chinese] 等任何 HTML 或机器代码标签！\n"
+        "   - 动作栏必须标明机位（@正面 或 @侧面），且声明主角为唯一发言人。\n\n"
+        "【表格输出结构示例】：\n"
+        "时间\\t画面场景\\t镜头运动\\t数字人动作表情\\t口播台词\n"
+        "0-4s【痛点钩子】\\t[真实场景描述]\\t[手持平稳后退跟拍等中文运镜]\\t@正面 [动作描述，主角唯一发言]\\t[严格对应秒数的纯中文台词]\n"
+        "4-11s【方案展开】\\t[真实场景描述]\\t[仰拍缓缓推升等中文运镜]\\t@侧面 [动作描述，主角唯一发言]\\t[严格对应秒数的纯中文台词]\n"
+        "11-15s【立信转化】\\t[真实场景描述]\\t[平视平稳推进等中文运镜]\\t@正面 [动作描述，主角唯一发言]\\t[严格对应秒数的纯中文台词]\n"
+    )
+
+    style_prompts = {
+        "pain_point": "风格要求：【痛点掀桌共鸣型】。开篇第一秒用最扎心的现实痛点直击灵魂（电费比工资贵 / 夏天三楼烫成烤箱），反问质问戳中心头刺，随后抛出反常识零成本解法，结尾提10年老店并引导评论区留面积。",
+        "case_story": "风格要求：【同城真实案例闪电击穿型】。直接调取知识库里江津珞璜郭坝村老周家自建房（发了3000初装费每年稳拿2240租金）或珞璜工业园精密机械厂的真实数字切入，摆真实数据震撼用户，结尾提10年老店并引导评论区留面积。",
+        "value_dry": "风格要求：【干货算账与细节拆解型】。用最通俗的人话拆解资方为什么愿意全款建站（全额上网卖电/峰平谷电价打折），把账算得明明白白，结尾提10年老店并引导评论区留面积。",
+        "anti_scam": "风格要求：【专撕套路与反认知型】。直接掀桌子撕开市场上不良中介假免费真贷款、游击队装完漏水跑路的黑幕，教老百姓如何一眼看穿，立稳专撕套路、帮老百姓避坑的硬核人设，结尾提10年老店并引导直接发私信免费帮忙看合同。",
+        "trust_cta": "风格要求：【10年老店千斤信誉强号召型】。开篇直奔老百姓怕被骗、怕惹麻烦的顾虑，顺水推舟亮出珞璜封成电器十年实体老门市的定海神针底牌，强力号召老乡和老板在评论区留面积或发私信。"
+    }
+
+    user_task = f"请针对业务分类：{'【重庆自建房户用光伏】' if req.category == 'RESIDENTIAL_CQ' else '【川渝工商业大厂房光伏】'}，按照风格：{style_prompts.get(req.style, style_prompts['pain_point'])}，直接生成标准 TSV 表格！"
+
+    try:
+        reply = await call_llm_chat([
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_task}
+        ], json_mode=False)
+
+        # 清洗可能存在的 markdown 代码块反引号
+        clean_tsv = reply.replace("```tsv", "").replace("```text", "").replace("```", "").strip()
+
+        return {
+            "success": True,
+            "script_table": clean_tsv,
+            "category": req.category,
+            "style": req.style,
+            "message": "🎉 封成电器金牌文案已秒级生成完毕！"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"调用大模型撰写文案失败: {str(e)}")
 
 class AIGenerateScriptRequest(BaseModel):
     category: str

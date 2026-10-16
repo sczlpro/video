@@ -659,11 +659,19 @@
         <!-- 主提示词卡片 (纯净输入框，杜绝混杂加号) -->
         <div class="prompt-card" style="width: 100%;">
             
-            <!-- 提示词工具条 (右上角全屏展开) -->
-            <div style="display: flex; justify-content: flex-end; margin-bottom: 4px;">
-                <button id="btnExpandPrompt" onclick="openFullscreenPromptModal()" style="display: none; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #c084fc; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 6px; cursor: pointer;" title="全屏查看与编辑长提示词">
-                    ⛶ 全屏查看
+            <!-- 提示词工具条 (左侧：一键写文案灵感入口；右侧：字数与全屏) -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <!-- ✨ 封成电器·AI金牌编剧灵感按钮 -->
+                <button onclick="openAIWriterModal()" style="display: inline-flex; align-items: center; gap: 5px; background: linear-gradient(135deg, rgba(168,85,247,0.25) 0%, rgba(56,189,248,0.2) 100%); border: 1px solid rgba(168,85,247,0.45); color: #c084fc; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 9999px; cursor: pointer; box-shadow: 0 0 10px rgba(168,85,247,0.15);">
+                    <span>✨ AI金牌编剧 (一键出分镜)</span>
                 </button>
+
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span id="wordsCountBadge" style="font-size: 10px; color: #94a3b8; font-weight: 700;">0 字</span>
+                    <button id="btnExpandPrompt" onclick="openFullscreenPromptModal()" style="display: none; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #cbd5e1; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 6px; cursor: pointer;" title="全屏查看与编辑长提示词">
+                        ⛶ 全屏
+                    </button>
+                </div>
             </div>
 
             <!-- 场景图与角色占位符高亮输入区 (严格限制手机端最大高度占屏1/3) -->
@@ -753,6 +761,61 @@
 
             <button class="btn-generate-main ready" id="btnExecuteReal" onclick="executeSubmitReal()" style="width: 100%; justify-content: center; padding: 11px; font-size: 14px; border-radius: 10px;">
                 确认提交
+            </button>
+        </div>
+    </div>
+
+    <!-- ★ 封成电器·AI金牌编剧 (一键根据本地真实知识库出分镜) 弹窗 -->
+    <div class="drawer-modal" id="aiWriterModal" style="z-index: 1500; align-items: center; background: rgba(0,0,0,0.85); backdrop-filter: blur(15px);">
+        <div class="confirm-dialog" style="max-width: 440px; width: 92%; padding: 18px; border: 1.5px solid rgba(168, 85, 247, 0.5); border-radius: 20px; box-shadow: 0 25px 70px rgba(0,0,0,0.95);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="font-size: 18px;">✨</span>
+                    <span style="font-size: 14px; font-weight: 800; color: #fff;">封成电器 · AI金牌编剧</span>
+                </div>
+                <button class="icon-circle-btn" style="width: 26px; height: 26px; font-size: 11px;" onclick="closeAIWriterModal()">✕</button>
+            </div>
+
+            <!-- 1. 目标业务分类单选 -->
+            <div style="font-size: 11px; font-weight: 700; color: #cbd5e1; margin-bottom: 6px;">1. 选择获客业务靶心：</div>
+            <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+                <div id="aiBtnCatRes" class="param-pill active" onclick="selectAIWriterCategory('RESIDENTIAL_CQ')" style="flex: 1; text-align: center; padding: 8px 4px;">
+                    <div style="font-size: 12px; font-weight: 800;">🏡 重庆自建房</div>
+                    <div style="font-size: 9px; color: #94a3b8; margin-top: 2px;">初装补贴+年租金+阳光棚</div>
+                </div>
+                <div id="aiBtnCatCom" class="param-pill" onclick="selectAIWriterCategory('COMMERCIAL_SC_CQ')" style="flex: 1; text-align: center; padding: 8px 4px;">
+                    <div style="font-size: 12px; font-weight: 800;">🏭 川渝大厂房</div>
+                    <div style="font-size: 9px; color: #94a3b8; margin-top: 2px;">零出资+白天用电打折</div>
+                </div>
+            </div>
+
+            <!-- 2. 视频爆破风格打法单选 -->
+            <div style="font-size: 11px; font-weight: 700; color: #cbd5e1; margin-bottom: 6px;">2. 选择短视频打法风格：</div>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 16px;">
+                <div class="ai-style-pill active" id="aiStyle_pain_point" onclick="selectAIWriterStyle('pain_point')" style="padding: 7px 8px; background: rgba(168,85,247,0.2); border: 1.5px solid #a855f7; border-radius: 8px; cursor: pointer; color: #fff; font-size: 11px; font-weight: 700;">
+                    🔥 痛点掀桌型 (直击刺客)
+                </div>
+                <div class="ai-style-pill" id="aiStyle_case_story" onclick="selectAIWriterStyle('case_story')" style="padding: 7px 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; cursor: pointer; color: #94a3b8; font-size: 11px; font-weight: 700;">
+                    ⚡ 真实案例型 (珞璜数字)
+                </div>
+                <div class="ai-style-pill" id="aiStyle_anti_scam" onclick="selectAIWriterStyle('anti_scam')" style="padding: 7px 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; cursor: pointer; color: #94a3b8; font-size: 11px; font-weight: 700;">
+                    🛡️ 专撕套路型 (假免费真贷)
+                </div>
+                <div class="ai-style-pill" id="aiStyle_value_dry" onclick="selectAIWriterStyle('value_dry')" style="padding: 7px 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; cursor: pointer; color: #94a3b8; font-size: 11px; font-weight: 700;">
+                    💰 干货算大账 (一度省两毛)
+                </div>
+                <div class="ai-style-pill" id="aiStyle_trust_cta" onclick="selectAIWriterStyle('trust_cta')" style="grid-column: 1 / -1; padding: 7px 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; cursor: pointer; color: #94a3b8; font-size: 11px; font-weight: 700; text-align: center;">
+                    🤝 10年老店立信型 (评论区留面积)
+                </div>
+            </div>
+
+            <!-- 生成提示与说明 -->
+            <div id="aiWriterStatusTip" style="font-size: 11px; color: #10b981; margin-bottom: 12px; line-height: 1.4; text-align: center;">
+                💡 自动调取本地重庆电价与珞璜案例知识库，严格输出 15秒 / 80字 纯中文分镜表格。
+            </div>
+
+            <button id="btnExecuteAIWriter" onclick="submitGenerateAIWriterScript()" class="btn-generate-main ready" style="width: 100%; justify-content: center; padding: 10px; font-size: 13px; border-radius: 10px;">
+                🚀 一键生成并填入输入框
             </button>
         </div>
     </div>
@@ -1857,6 +1920,78 @@
 
             const btn = document.getElementById("btnSubmitMain");
             btn.classList.toggle("ready", pureWords > 5);
+        }
+
+        // ================= ★ 封成电器·AI金牌编剧 (一键根据本地知识库与军规生成15秒80字分镜) =================
+        let currentAIWriterCategory = "RESIDENTIAL_CQ";
+        let currentAIWriterStyle = "pain_point";
+
+        function openAIWriterModal() {
+            document.getElementById("aiWriterModal").classList.add("active");
+        }
+        function closeAIWriterModal() {
+            document.getElementById("aiWriterModal").classList.remove("active");
+        }
+
+        function selectAIWriterCategory(cat) {
+            currentAIWriterCategory = cat;
+            document.getElementById("aiBtnCatRes").classList.toggle("active", cat === "RESIDENTIAL_CQ");
+            document.getElementById("aiBtnCatCom").classList.toggle("active", cat === "COMMERCIAL_SC_CQ");
+        }
+
+        function selectAIWriterStyle(style) {
+            currentAIWriterStyle = style;
+            document.querySelectorAll(".ai-style-pill").forEach(el => {
+                el.style.background = "rgba(255,255,255,0.04)";
+                el.style.borderColor = "rgba(255,255,255,0.12)";
+                el.style.color = "#94a3b8";
+            });
+            const activeEl = document.getElementById(`aiStyle_${style}`);
+            if (activeEl) {
+                activeEl.style.background = "rgba(168,85,247,0.2)";
+                activeEl.style.borderColor = "#a855f7";
+                activeEl.style.color = "#fff";
+            }
+        }
+
+        async function submitGenerateAIWriterScript() {
+            const btn = document.getElementById("btnExecuteAIWriter");
+            const tip = document.getElementById("aiWriterStatusTip");
+            btn.disabled = true;
+            btn.innerText = "⏳ 正在检索本地知识库并调用DeepSeek创作中...";
+            tip.innerText = "正在调取珞璜10年老店背书、国网分时电价与真实案例，卡死15秒总长...";
+            tip.style.color = "#fbbf24";
+
+            try {
+                const res = await fetch("/api/v1/scripts/generate-quick-ai-script", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        category: currentAIWriterCategory,
+                        style: currentAIWriterStyle
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success && data.script_table) {
+                    const textarea = document.getElementById("promptInput");
+                    textarea.value = data.script_table;
+                    closeAIWriterModal();
+                    handlePromptInput();
+                    alert("🎉 15秒纯中文实战分镜已生成并填入输入框！请确认无误后点击右下角【生成】出片！");
+                } else {
+                    alert("生成失败: " + (data.detail || "未知异常，请检查API设置"));
+                    tip.innerText = "❌ 生成异常: " + (data.detail || "请检查设置");
+                    tip.style.color = "#ef4444";
+                }
+            } catch(e) {
+                alert("请求异常: " + e);
+                tip.innerText = "❌ 连接异常: " + e;
+                tip.style.color = "#ef4444";
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "🚀 一键生成并填入输入框";
+            }
         }
 
         function clearInput() {
