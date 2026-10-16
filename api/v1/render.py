@@ -379,29 +379,6 @@ def parse_prompt_to_segments(prompt_text: str, total_duration: int = 30, image_m
                     scene_img = f"场景_{m_scene.group(1)}.jpg"
                     scene_label = f"场景_{m_scene.group(1)}"
 
-            # 提取语气指令：如果台词中包含【质问】/【兴奋】/【沉稳】等中文标记，提取为专属语气指导
-            tone_inst = None
-            m_tone = re.search(r"【(质问|反问|痛点|兴奋|激动|高兴|喜悦|沉稳|笃定|严肃|号召|权威|诚恳|热烈|自信|迫切|疑问)[^】]*】", dialogue)
-            if m_tone:
-                tone_key = m_tone.group(1)
-                tone_map = {
-                    "质问": "语气带着强烈的质疑与反问，情绪急迫有力，重点词加重读音，句尾明显挑高！",
-                    "反问": "语气带着强烈的质疑与反问，情绪急迫有力，重点词加重读音，句尾明显挑高！",
-                    "痛点": "语气带着强烈的痛惜与质问，情绪严肃紧迫，直击痛点！",
-                    "兴奋": "语气高亢喜悦，充满自信与感染力，声音洪亮饱满！",
-                    "激动": "语气高亢喜悦，充满自信与感染力，声音洪亮饱满！",
-                    "高兴": "语气高亢喜悦，充满自信与感染力，声音洪亮饱满！",
-                    "喜悦": "语气高亢喜悦，充满自信与感染力，声音洪亮饱满！",
-                    "沉稳": "语速沉稳从容，咬字清晰，展现出权威资方的深厚底气与诚恳！",
-                    "笃定": "语速沉稳从容，咬字清晰，展现出权威资方的深厚底气与诚恳！",
-                    "严肃": "语速沉稳从容，咬字清晰，展现出权威资方的深厚底气与诚恳！",
-                    "号召": "语气坚定自信，充满号召力与感染力，热烈真诚！",
-                    "权威": "语速沉稳从容，咬字清晰，展现出权威资方的深厚底气与诚恳！",
-                    "诚恳": "语速沉稳从容，咬字清晰，展现出权威资方的深厚底气与诚恳！",
-                    "自信": "语气自信坚定，节奏明快有力！"
-                }
-                tone_inst = tone_map.get(tone_key)
-
             # 拼装工业级电影感提示词 (传入解析出的 camera 运镜指令，全面赋能三维动态)
             clean_diag = clean_text_for_dialogue(dialogue)
             full_prompt = build_cinematic_h3_prompt(scene, action, clean_diag, ref_role, bool(scene_img), camera_desc=camera)
@@ -414,7 +391,6 @@ def parse_prompt_to_segments(prompt_text: str, total_duration: int = 30, image_m
                 "scene_image": scene_img,
                 "scene_label": scene_label,
                 "dialogue": clean_diag,
-                "tone_instruction": tone_inst,
                 "prompt": full_prompt,
                 "raw_scene": scene,
                 "raw_action": action,

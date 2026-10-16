@@ -263,83 +263,6 @@ class AutoDLService:
                     })
             return active
 
-    def generate_voice_via_qwen_audio(self, prompt_text: str, custom_voice_id: Optional[str] = None, user_instruction: Optional[str] = None) -> tuple[Optional[str], Optional[float]]:
-        """
-        调用阿里云百炼旗舰级 Qwen-Audio-3.1-TTS-Flash 语音大模型
-        1. 支持用户在台词前加【语气标签】(如【质问】【兴奋】【沉稳】) 直接控制；
-        2. 无标签时根据台词语义自适应智能推断，彻底实现抑扬顿挫！
-        返回: (音频可公开访问直链, 真实音频时长秒数)
-        """
-        if not prompt_text:
-            return None, None
-
-        api_key = settings.DASHSCOPE_API_KEY
-        if not api_key:
-            return None, None
-
-        clean_text = prompt_text.strip()
-
-        # 优先读取用户显式指定的语气指令
-        if user_instruction and len(user_instruction.strip()) > 1:
-            instruction = user_instruction.strip()
-        else:
-            # 根据台词语义，自适应注入 Qwen-Audio 专属的 free-style 情绪与发音指令
-            if any(k in clean_text for k in ["肉紧", "痛", "死扛", "发冲", "漏水", "贵", "烦心", "扯拐", "心痛", "吓人", "怎么"]):
-                instruction = "语气带着强烈的质疑与反问，情绪急迫有力，重点词加重读音，句尾明显挑高！"
-            elif any(k in clean_text for k in ["真金白银", "省下", "一大坨", "全额", "安逸", "到手", "打折", "免费", "现金"]):
-                instruction = "语气高亢喜悦，充满自信与感染力，声音洪亮饱满！"
-            elif any(k in clean_text for k in ["算一算", "测算", "私信", "落教", "电话", "留个面积", "明白", "亲自"]):
-                instruction = "语速沉稳从容，咬字清晰，展现出权威资方的深厚底气与诚恳！"
-            else:
-                instruction = "语调自然生动，富有抑扬顿挫的商务说服力与交流感！"
-
-        # 优先使用宋勇在百炼复刻成功的专属 Voice ID，未复刻前使用 xunanchuan_v3.1
-        SONGYONG_OFFICIAL_VOICE_ID = "qwen-audio-3.1-tts-flash-bailian-d6f061f198d247979cd9d96c466ea1d2"
-        voice_to_use = custom_voice_id if custom_voice_id else SONGYONG_OFFICIAL_VOICE_ID
-
-        payload = {
-            "model": "qwen-audio-3.1-tts-flash",
-            "input": {
-                "text": clean_text,
-                "instruction": instruction
-            },
-            "parameters": {
-                "voice": voice_to_use,
-                "format": "wav",
-                "sample_rate": 24000
-            }
-        }
-
-        endpoint = settings.DASHSCOPE_TTS_URL
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
-        }
-
-        try:
-            print(f"[QwenAudioTTS] 正在调用 Qwen-Audio-3.1 合成语音: '{clean_text[:20]}...' (音色: {voice_to_use})")
-            req = requests.post(endpoint, json=payload, headers=headers, timeout=25)
-            if req.status_code == 200:
-                res_data = req.json()
-                audio_raw_url = res_data.get("output", {}).get("audio", {}).get("url")
-                if not audio_raw_url:
-                    print(f"[QwenAudioTTS] 响应未包含音频URL: {res_data}")
-                    return None, None
-
-                # 关键：百炼返回的 audio_raw_url 本身就是阿里云在北京 OSS 上签发的标准公开可下载直链！
-                # 直接返回该公网直链给 AutoDL，AutoDL 同样部署在北京机房，同地域拉取速度达数十兆/秒！
-                # 预估时长：按可发声汉字数与标点计算（每秒约 3.6~4.2 字），避免中转下载超时
-                char_count = len(re.sub(r"[^\u4e00-\u9fa5]", "", clean_text))
-                exact_duration = round(max(4.0, min(15.0, char_count / 3.8 + 0.8)), 1)
-                print(f"[QwenAudioTTS] 音频合成成功！直链: {audio_raw_url[:80]}... (预估物理时长: {exact_duration}s)")
-                return audio_raw_url, exact_duration
-            else:
-                print(f"[QwenAudioTTS] 调用百炼合成接口失败: HTTP {req.status_code} - {req.text}")
-                return None, None
-        except Exception as e:
-            print(f"[QwenAudioTTS] 异常，降级处理: {e}")
-            return None, None
-
     def _run_job_worker(self, job_id: str, segments: List[dict], mode: str):
         """后台异步处理线程：负责并发提交、轮询监控、下载切片与FFmpeg 0帧无损硬切"""
         time.sleep(0.5)
@@ -431,22 +354,6 @@ class AutoDLService:
             wf_id = self.config.get("video", {}).get("workflow_id", "minimax_h3_zm_u24")
             resolution = self.config.get("video", {}).get("resolution", "768p竖")
 
-            # 检查当前成员是否有绑定的专属 Voice ID (宋勇专属百炼复刻ID硬编码托底)
-            SONGYONG_OFFICIAL_VOICE_ID = "qwen-audio-3.1-tts-flash-bailian-d6f061f198d247979cd9d96c466ea1d2"
-            user_voice_id = None
-
-            if job.get("owner", "songyong") == "songyong":
-                user_voice_id = SONGYONG_OFFICIAL_VOICE_ID
-            else:
-                try:
-                    db_auth = SessionLocal()
-                    owner_user = db_auth.query(User).filter(User.username == job.get("owner")).first()
-                    if owner_user and owner_user.voice_sample_url:
-                        user_voice_id = owner_user.voice_sample_url
-                    db_auth.close()
-                except Exception as e:
-                    print(f"[AutoDLService] 读取成员专属Voice ID失败: {e}")
-
             for i, seg in enumerate(segments):
                 sid = seg.get("id", i + 1)
                 dur = min(15, max(1, int(seg.get("duration", 10))))
@@ -455,26 +362,13 @@ class AutoDLService:
                 # 决定使用正面还是侧面
                 img_url = side_url if ("侧身" in prompt or "45度" in prompt or seg.get("role") == "ayong_side" or i == 1) else front_url
 
+                # 严格按照用户分镜时长控制，坚决不挂载任何外挂音频，杜绝视频被恶意拉长注水！
                 payload = {
                     "prompt": prompt,
                     "duration": dur,
                     "resolution": resolution,
                     "ref_image_0": img_url
                 }
-
-                # 优先调用百炼旗舰 Qwen-Audio-3.1 语音大模型，精确合成并测量物理时长
-                diag_text = seg.get("dialogue", "")
-                if diag_text:
-                    with self._lock:
-                        job["step"] = f"正在使用 Qwen-Audio-3.1 旗舰大模型合成第{sid}段高品质语音..."
-                    user_tone = seg.get("tone_instruction")
-                    custom_audio_url, exact_dur = self.generate_voice_via_qwen_audio(diag_text, custom_voice_id=user_voice_id, user_instruction=user_tone)
-                    if custom_audio_url:
-                        payload["ref_audio_0"] = custom_audio_url
-                        # 核心突破：音频时长倒逼视频时长毫秒级对齐，彻底消灭吞字！
-                        if exact_dur and exact_dur > 0:
-                            payload["duration"] = min(15, max(1, int(round(exact_dur))))
-                        print(f"[AutoDLService] ★ 分镜 {sid} 成功接入 Qwen-Audio 高保真语音 (时长: {payload['duration']}s): {custom_audio_url}")
 
                 # 场景图插槽 (ref_image_1)
                 scene_fn = seg.get("scene_image")
@@ -488,7 +382,7 @@ class AutoDLService:
                     else:
                         print(f"[AutoDLService] ⚠️ 分镜 {sid} 指定的场景图未在本地找到: {scene_path}")
 
-                print(f"[AutoDLService] 提交分镜 {sid} [时长={dur}s, 人物={'45度侧身' if '侧身' in prompt or seg.get('role') == 'ayong_side' else '正面'}, 场景={'已挂载R2' if 'ref_image_1' in payload else '纯提示词'}]")
+                print(f"[AutoDLService] 提交分镜 {sid} [严格锁定={dur}s, 人物={'45度侧身' if '侧身' in prompt or seg.get('role') == 'ayong_side' else '正面'}, 场景={'已挂载R2' if 'ref_image_1' in payload else '纯提示词'}]")
                 task_id = self.submit_autodl_workflow(wf_id, payload)
                 with self._lock:
                     job["segments"][i]["task_id"] = task_id

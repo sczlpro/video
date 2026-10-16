@@ -905,22 +905,6 @@
                 <input type="file" id="inputRoleSide" accept="image/*" style="display: none;" onchange="handleUploadCustomRole(event, 'side')">
             </div>
 
-            <!-- 3. 专属声音复刻 (基于阿里云百炼 Qwen-Audio-3.1 商业大模型) -->
-            <div style="background: #111118; border: 1px dashed rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 12px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 42px; height: 42px; border-radius: 50%; border: 1.5px solid #10b981; display: flex; align-items: center; justify-content: center; background: #0c0c12;">
-                        <span style="font-size: 20px;">🎙️</span>
-                    </div>
-                    <div>
-                        <div style="font-size: 12px; font-weight: 700; color: #f1f5f9;">宋勇专属复刻声音</div>
-                        <div id="voiceStatusLabel" style="font-size: 10px; color: #10b981;">Qwen-Audio-3.1 (已激活)</div>
-                    </div>
-                </div>
-                <div style="font-size: 11px; color: #10b981; font-weight: 800; padding: 4px 8px; background: rgba(16,185,129,0.15); border-radius: 6px;">
-                    已绑定
-                </div>
-            </div>
-
             <div style="display: flex; gap: 8px;">
                 <button onclick="deleteCustomRolePhotos()" style="flex: 1; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #f87171; font-size: 12px; font-weight: 700; padding: 9px; border-radius: 8px; cursor: pointer;">
                     🗑️ 清空主角形象
