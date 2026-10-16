@@ -344,7 +344,7 @@ def parse_prompt_to_segments(prompt_text: str, total_duration: int = 30, image_m
         if time_match:
             st = int(time_match.group(1))
             et = int(time_match.group(2))
-            dur = max(1, min(15, et - st))
+            parsed_dur = max(1, min(15, et - st))
 
             scene = cols[1] if len(cols) > 1 else ""
             camera = cols[2] if len(cols) > 2 else ""
@@ -356,6 +356,15 @@ def parse_prompt_to_segments(prompt_text: str, total_duration: int = 30, image_m
                 candidates = [c for c in cols[1:] if not any(k in c for k in ["特写", "全景", "镜头", "推近", "切场", "横移"])]
                 if candidates:
                     dialogue = max(candidates, key=len)
+
+            clean_diag = clean_text_for_dialogue(dialogue)
+
+            # ★ 语速安全自适应兜底：汉字朗读按 3.8字/秒 + 标点停顿估算
+            # 如果表格写的秒数明显不够把这段话念完，智能自动扩充到足够秒数（上限15秒），彻底杜绝台词被掐断！
+            c_count = len(re.sub(r"[^\u4e00-\u9fa5]", "", clean_diag))
+            p_count = len(re.findall(r"[，。！？、；]", clean_diag))
+            min_needed_dur = int(round(c_count / 3.8 + p_count * 0.25)) if c_count > 0 else parsed_dur
+            dur = max(parsed_dur, min(15, min_needed_dur))
 
             # 1. 角色智能判断: 严格按 @侧面 / @正面 / @阿勇侧面 / @阿勇正面 精准锁定机位
             if any(k in line for k in ["@侧面", "@阿勇侧面", "@阿勇_侧面", "@阿勇_45度"]):
