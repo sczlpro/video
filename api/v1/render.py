@@ -711,7 +711,7 @@ async def parse_preview(req: ParsePreviewRequest):
     }
 
 @router.post("/submit", summary="★ 提交生成任务并启动后台异步渲染与轮询流水线")
-def submit_render_job(req: RenderSubmitRequest, db: Session = Depends(get_db)):
+async def submit_render_job(req: RenderSubmitRequest, db: Session = Depends(get_db)):
     """
     接收用户从豆包生成的提示词与分镜配置，触发算力并启动非阻塞轮询，完成后自动 0 帧硬切秒出
     """
@@ -721,7 +721,7 @@ def submit_render_job(req: RenderSubmitRequest, db: Session = Depends(get_db)):
     if req.segments and len(req.segments) > 0:
         segments = req.segments
     else:
-        segments = parse_prompt_to_segments(req.prompt or "", req.duration, req.image_map)
+        segments = await parse_prompt_to_segments_async(req.prompt or "", req.duration, req.image_map)
 
     total_dur = sum(s.get("duration", 10) for s in segments)
     estimated_cost = round(total_dur * 0.040, 2)
