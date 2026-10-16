@@ -14,11 +14,12 @@ def get_storage_status():
 
 @router.post("/upload-local", summary="上传素材图片到本地素材库 (免R2也可直接使用)")
 async def upload_local_asset(
-    file: UploadFile = File(..., description="要上传的素材图片"),
-    category: str = Form("character", description="素材类别: character (主角) 或 scene (场景图)")
+    file: UploadFile = File(..., description="要上传的素材文件"),
+    category: str = Form("character", description="素材类别: character (主角), scene (场景图), voice (原声录音)")
 ):
     """
-    接收用户上传的本地照片，自动存入 static/assets/ 目录并返回直链
+    接收用户上传的本地照片或录音，自动存入 static/assets/ 目录并返回直链
+    如果是 voice (原声录音)，自动同步上传至 Cloudflare R2，确保云端算力秒级可访问！
     """
     assets_dir = settings.BASE_DIR / "static" / "assets"
     assets_dir.mkdir(parents=True, exist_ok=True)
@@ -32,11 +33,28 @@ async def upload_local_asset(
         with open(save_path, "wb") as f:
             f.write(content)
 
+        # ★ 关键：如果是 voice 音频录音，立即同步上传到 Cloudflare R2，换取公开 HTTPS 地址
+        r2_url = None
+        if category == "voice" and settings.is_r2_configured:
+            try:
+                r2_url = r2_storage.upload_bytes(
+                    data=content,
+                    remote_key=f"assets/{clean_filename}",
+                    content_type=file.content_type or "audio/mpeg"
+                )
+                print(f"[UploadAsset] 原声录音已同步至 Cloudflare R2 全球公网: {r2_url}")
+            except Exception as e:
+                print(f"[UploadAsset] 原声录音同步 R2 失败: {e}")
+
+        # 如果成功获得了 R2 公开直链，优先返回公网直链；否则返回本地相对路径
+        final_url = r2_url if r2_url else f"/static/assets/{clean_filename}"
+
         return {
             "success": True,
             "filename": clean_filename,
             "category": category,
-            "local_url": f"/static/assets/{clean_filename}",
+            "local_url": final_url,
+            "r2_url": r2_url,
             "size_kb": round(len(content) / 1024, 2),
             "message": "素材上传成功，已加入随身素材库！"
         }

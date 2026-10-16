@@ -1186,11 +1186,19 @@
                 if (data.success) {
                     currentMember = {
                         username: data.user.username,
-                        name: data.user.name
+                        name: data.user.name,
+                        voice_sample_url: data.user.voice_sample_url
                     };
                     localStorage.setItem("dsh_current_member", JSON.stringify(currentMember));
                     document.getElementById("currentMemberNameLabel").innerText = currentMember.name;
                     document.getElementById("loginModal").classList.remove("active");
+
+                    // 同步声音状态
+                    const voiceLbl = document.getElementById("voiceStatusLabel");
+                    if (voiceLbl) {
+                        voiceLbl.innerText = data.user.voice_sample_url ? "已成功绑定原声录音 (已激活)" : "传一段5-15秒纯净录音";
+                        voiceLbl.style.color = data.user.voice_sample_url ? "#10b981" : "#94a3b8";
+                    }
 
                     // 读取该成员绑定的专属形象
                     mainRoleData = {
