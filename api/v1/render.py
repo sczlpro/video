@@ -46,6 +46,44 @@ def clean_text_for_dialogue(text: str) -> str:
     t = re.sub(r"\s{2,}", " ", t).strip()
     return t
 
+def enrich_scene_description(scene_desc: str) -> str:
+    """
+    智能场景丰满器：将简短的中文场景转化为具有丰富物理结构、材质纹理与光影层次的工业级电影实景描述。
+    彻底解决背景空洞、不直观、缺乏工业说服力的问题。
+    """
+    s = (scene_desc or "").strip().lower()
+
+    if any(k in s for k in ["屋顶", "彩钢", "老厂房", "车间顶", "通道"]):
+        return (
+            "Sprawling commercial factory rooftop in Chongqing with authentic industrial texture: "
+            "weathered corrugated steel tiles with subtle rust spots, heavy galvanized ventilation conduits, steel safety railings, "
+            "and massive air conditioning condenser units; in the far background, rolling lush green mountains of Sichuan-Chongqing under a natural soft overcast cloudy sky, creating deep atmospheric perspective."
+        )
+    elif any(k in s for k in ["光伏", "太阳能", "电池板", "组件", "阵列"]):
+        return (
+            "Expansive modern industrial rooftop installation with thousands of dark blue monocrystalline photovoltaic solar panels arranged in clean, geometric diagonal rows; "
+            "metallic aluminum mounting brackets gleaming under natural diffuse daylight, cable bridge trays running along the concrete walkways, high-voltage warning markers, "
+            "and an expansive open horizon showing industrial cranes and rolling hills in the distant haze."
+        )
+    elif any(k in s for k in ["变压器", "配电", "电表", "机房", "电房", "变电"]):
+        return (
+            "Heavy-duty outdoor industrial substation and step-up transformer area beside a manufacturing plant: "
+            "massive oil-immersed transformers with ceramic insulator bushings and overhead high-voltage transmission cables, steel cage safety enclosures, industrial digital power meter cabinets, "
+            "weathered concrete ground with yellow safety demarcation lines, and the textured corrugated metal wall of the plant in the background."
+        )
+    elif any(k in s for k in ["车间", "生产线", "厂房内部", "仓库"]):
+        return (
+            "Spacious high-ceiling industrial manufacturing workshop with soaring steel truss framework: "
+            "heavy overhead bridge crane gantry, industrial CNC machinery and automated production conveyors on polished green epoxy flooring, natural soft daylight pouring through clerestory windows, "
+            "and stacked manufacturing components creating rich spatial depth."
+        )
+    else:
+        # 通用丰富工业背景
+        return (
+            f"Authentic Chongqing commercial industrial facility: {scene_desc}, "
+            "featuring solid architectural concrete textures, steel beams, heavy industrial piping, and distant misty rolling mountains under authentic diffuse ambient daylight, rich in tangible physical details."
+        )
+
 def map_action_to_english(action_desc: str, role: str = "ayong_front", has_scene_image: bool = False) -> str:
     """智能解析动作描述：优先释放用户传入的真实肢体运动与空间位移，无输入时才使用高动态默认值"""
     act = action_desc.strip() if action_desc else ""
@@ -138,12 +176,13 @@ def build_cinematic_h3_prompt(scene_desc: str, action_desc: str, dialogue: str, 
             "The environmental architecture, concrete textures, steel structures, and overhead sky strictly reflect <Picture 2>."
         )
     else:
-        env_clean = scene_desc.strip() if scene_desc else "Expansive industrial factory rooftop and manufacturing workshop surroundings in Chongqing, weathered corrugated metal tiles, ventilation conduits, distant rolling green hills under cloudy sky"
+        # 当未传入真实场景图时，调用智能场景丰满器，自动生成极度具象、有结构、有纵深的工业场景细节
+        env_rich = enrich_scene_description(scene_desc)
         framing_rule = (
             "Spatial framing: The camera frames the subject in a lively environmental composition, giving ample prominence to the sprawling industrial backdrop and architectural depth. "
             "The camera motion reveals rich spatial perspective and dynamic parallax between the subject and the layered background."
         )
-        env_rule = f"Environment: {env_clean}. Authentic Sichuan-Chongqing industrial surroundings with rolling hills in the background. Absolutely no storefront signage, no commercial street."
+        env_rule = f"Environment: {env_rich} Absolutely no storefront signage, no commercial street, no shopfront."
 
     # 3. 主角与肢体动作 (释放走动、转身、观察、指点等自然动态)
     character_desc = (
