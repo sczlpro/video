@@ -6,6 +6,7 @@ import uuid
 import hashlib
 import threading
 import io
+import re
 import requests
 from typing import Dict, Any, List, Optional
 from datetime import datetime
@@ -317,7 +318,7 @@ class AutoDLService:
 
         try:
             print(f"[QwenAudioTTS] 正在调用 Qwen-Audio-3.1 合成语音: '{clean_text[:20]}...' (音色: {voice_to_use})")
-            req = requests.post(endpoint, json=payload, headers=headers, timeout=20)
+            req = requests.post(endpoint, json=payload, headers=headers, timeout=25)
             if req.status_code == 200:
                 res_data = req.json()
                 audio_raw_url = res_data.get("output", {}).get("audio", {}).get("url")
@@ -325,30 +326,13 @@ class AutoDLService:
                     print(f"[QwenAudioTTS] 响应未包含音频URL: {res_data}")
                     return None, None
 
-                # 关键：下载该音频并用 FFmpeg 精确测量物理时长
-                temp_audio_path = settings.BASE_DIR / "static" / "videos" / "temp" / f"qwen_{uuid.uuid4().hex[:8]}.wav"
-                temp_audio_path.parent.mkdir(parents=True, exist_ok=True)
-
-                r_aud = requests.get(audio_raw_url, timeout=20)
-                with open(temp_audio_path, "wb") as f:
-                    f.write(r_aud.content)
-
-                # 测量精确物理秒数
-                exact_duration = 5.0
-                try:
-                    probe_cmd = ["ffmpeg", "-i", str(temp_audio_path)]
-                    p_res = subprocess.run(probe_cmd, capture_output=True, text=True, errors="ignore")
-                    m = re.search(r"Duration:\s*(\d+):(\d+):(\d+\.\d+)", p_res.stderr)
-                    if m:
-                        h, mm, ss = m.groups()
-                        exact_duration = round(int(h) * 3600 + int(mm) * 60 + float(ss), 2)
-                        print(f"[QwenAudioTTS] 音频精确物理时长测量成功: {exact_duration} 秒")
-                except Exception as e:
-                    print(f"[QwenAudioTTS] 测量时长异常: {e}")
-
-                # 将高质量音频上传至 Cloudflare R2，确保全球公网畅通
-                r2_audio_url = self.upload_file_to_storage(temp_audio_path)
-                return r2_audio_url, exact_duration
+                # 关键：百炼返回的 audio_raw_url 本身就是阿里云在北京 OSS 上签发的标准公开可下载直链！
+                # 直接返回该公网直链给 AutoDL，AutoDL 同样部署在北京机房，同地域拉取速度达数十兆/秒！
+                # 预估时长：按可发声汉字数与标点计算（每秒约 3.6~4.2 字），避免中转下载超时
+                char_count = len(re.sub(r"[^\u4e00-\u9fa5]", "", clean_text))
+                exact_duration = round(max(4.0, min(15.0, char_count / 3.8 + 0.8)), 1)
+                print(f"[QwenAudioTTS] 音频合成成功！直链: {audio_raw_url[:80]}... (预估物理时长: {exact_duration}s)")
+                return audio_raw_url, exact_duration
             else:
                 print(f"[QwenAudioTTS] 调用百炼合成接口失败: HTTP {req.status_code} - {req.text}")
                 return None, None
