@@ -31,7 +31,7 @@ class User(Base):
     password_hash = Column(String(128), nullable=False, doc="密码哈希 (默认88888888)")
     role_front_url = Column(Text, nullable=True, doc="专属主角正面特写照")
     role_side_url = Column(Text, nullable=True, doc="专属主角45度侧身照")
-    voice_sample_url = Column(Text, nullable=True, doc="专属原声克隆录音参考音频URL (用于indextts2-v1)")
+    voice_sample_url = Column(Text, nullable=True, doc="专属原声克隆 Voice ID 或录音直链 (用于百炼 Qwen-Audio)")
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 

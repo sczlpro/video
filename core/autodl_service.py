@@ -447,21 +447,21 @@ class AutoDLService:
             wf_id = self.config.get("video", {}).get("workflow_id", "minimax_h3_zm_u24")
             resolution = self.config.get("video", {}).get("resolution", "768p竖")
 
-            # 检查当前成员是否有绑定的原声录音 (宋勇专属公网R2录音硬编码托底，彻底杜绝任何时机取不到)
-            SONGYONG_HARDCODED_R2_VOICE = "https://pub-181ed1de566e43d8947046a376d951a9.r2.dev/assets/voice_%E6%A0%87%E5%87%86%E5%BD%95%E9%9F%B3%202.mp3"
-            user_voice_url = None
+            # 检查当前成员是否有绑定的专属 Voice ID (宋勇专属百炼复刻ID硬编码托底)
+            SONGYONG_OFFICIAL_VOICE_ID = "qwen-audio-3.1-tts-flash-bailian-d6f061f198d247979cd9d96c466ea1d2"
+            user_voice_id = None
 
             if job.get("owner", "songyong") == "songyong":
-                user_voice_url = SONGYONG_HARDCODED_R2_VOICE
+                user_voice_id = SONGYONG_OFFICIAL_VOICE_ID
             else:
                 try:
                     db_auth = SessionLocal()
                     owner_user = db_auth.query(User).filter(User.username == job.get("owner")).first()
                     if owner_user and owner_user.voice_sample_url:
-                        user_voice_url = owner_user.voice_sample_url
+                        user_voice_id = owner_user.voice_sample_url
                     db_auth.close()
                 except Exception as e:
-                    print(f"[AutoDLService] 读取成员原声样本失败: {e}")
+                    print(f"[AutoDLService] 读取成员专属Voice ID失败: {e}")
 
             for i, seg in enumerate(segments):
                 sid = seg.get("id", i + 1)
@@ -483,9 +483,8 @@ class AutoDLService:
                 if diag_text:
                     with self._lock:
                         job["step"] = f"正在使用 Qwen-Audio-3.1 旗舰大模型合成第{sid}段高品质语音..."
-                    qwen_voice_id = user_voice_url if (user_voice_url and not user_voice_url.startswith("http")) else None
                     user_tone = seg.get("tone_instruction")
-                    custom_audio_url, exact_dur = self.generate_voice_via_qwen_audio(diag_text, custom_voice_id=qwen_voice_id, user_instruction=user_tone)
+                    custom_audio_url, exact_dur = self.generate_voice_via_qwen_audio(diag_text, custom_voice_id=user_voice_id, user_instruction=user_tone)
                     if custom_audio_url:
                         payload["ref_audio_0"] = custom_audio_url
                         # 核心突破：音频时长倒逼视频时长毫秒级对齐，彻底消灭吞字！

@@ -85,7 +85,7 @@ class UpdateVoiceSampleRequest(BaseModel):
 
 @router.post("/update-voice-sample", summary="更新成员专属克隆原声音频")
 def update_voice_sample(req: UpdateVoiceSampleRequest, db: Session = Depends(get_db)):
-    """持久化保存成员自己的 5~15 秒原声录音直链，供 indextts2-v1 克隆使用"""
+    """持久化保存成员自己的专属 Voice ID 或录音，供百炼 Qwen-Audio 声音复刻使用"""
     user = db.query(User).filter(User.username == req.username).first()
     if not user:
         raise HTTPException(status_code=404, detail="成员不存在")
