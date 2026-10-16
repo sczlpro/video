@@ -407,16 +407,21 @@ class AutoDLService:
             wf_id = self.config.get("video", {}).get("workflow_id", "minimax_h3_zm_u24")
             resolution = self.config.get("video", {}).get("resolution", "768p竖")
 
-            # 检查当前成员是否有绑定的原声录音
+            # 检查当前成员是否有绑定的原声录音 (宋勇专属公网R2录音硬编码托底，彻底杜绝任何时机取不到)
+            SONGYONG_HARDCODED_R2_VOICE = "https://pub-181ed1de566e43d8947046a376d951a9.r2.dev/assets/voice_%E6%A0%87%E5%87%86%E5%BD%95%E9%9F%B3%202.mp3"
             user_voice_url = None
-            try:
-                db_auth = SessionLocal()
-                owner_user = db_auth.query(User).filter(User.username == job.get("owner", "songyong")).first()
-                if owner_user and owner_user.voice_sample_url:
-                    user_voice_url = owner_user.voice_sample_url
-                db_auth.close()
-            except Exception as e:
-                print(f"[AutoDLService] 读取成员原声样本失败: {e}")
+
+            if job.get("owner", "songyong") == "songyong":
+                user_voice_url = SONGYONG_HARDCODED_R2_VOICE
+            else:
+                try:
+                    db_auth = SessionLocal()
+                    owner_user = db_auth.query(User).filter(User.username == job.get("owner")).first()
+                    if owner_user and owner_user.voice_sample_url:
+                        user_voice_url = owner_user.voice_sample_url
+                    db_auth.close()
+                except Exception as e:
+                    print(f"[AutoDLService] 读取成员原声样本失败: {e}")
 
             for i, seg in enumerate(segments):
                 sid = seg.get("id", i + 1)

@@ -1494,8 +1494,9 @@
 
             const voiceLbl = document.getElementById("voiceStatusLabel");
             if (voiceLbl) {
-                voiceLbl.innerText = currentMember && currentMember.voice_sample_url ? "已绑定专属原声 (已激活)" : "传一段5-15秒纯净录音";
-                voiceLbl.style.color = currentMember && currentMember.voice_sample_url ? "#10b981" : "#94a3b8";
+                const hasVoice = (currentMember && currentMember.username === "songyong") || (currentMember && currentMember.voice_sample_url);
+                voiceLbl.innerText = hasVoice ? "已绑定专属原声 (已激活)" : "传一段5-15秒纯净录音";
+                voiceLbl.style.color = hasVoice ? "#10b981" : "#94a3b8";
             }
 
             document.getElementById("addRoleModal").classList.add("active");
