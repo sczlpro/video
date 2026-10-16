@@ -828,10 +828,10 @@
                 <label style="font-size: 11px; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 4px;">接口 Base URL：</label>
                 <input type="text" id="inputLLMBaseUrl" placeholder="如: https://api.deepseek.com/v1" style="width: 100%; padding: 9px 12px; background: #0c0c12; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; color: #fff; font-size: 12px; outline: none; box-sizing: border-box;">
                 <div style="display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap;">
-                    <span onclick="applyLLMPreset('deepseek')" style="font-size: 10px; color: #38bdf8; background: rgba(56,189,248,0.15); padding: 2px 6px; border-radius: 4px; cursor: pointer;">DeepSeek-V3</span>
-                    <span onclick="applyLLMPreset('deepseek_r1')" style="font-size: 10px; color: #f59e0b; background: rgba(245,158,11,0.15); padding: 2px 6px; border-radius: 4px; cursor: pointer;">DeepSeek-R1 (深度推理)</span>
+                    <span onclick="applyLLMPreset('deepseek_flash')" style="font-size: 10px; color: #38bdf8; background: rgba(56,189,248,0.15); padding: 2px 6px; border-radius: 4px; cursor: pointer;">DeepSeek V4.1 Flash (官方推荐)</span>
+                    <span onclick="applyLLMPreset('deepseek_pro')" style="font-size: 10px; color: #f59e0b; background: rgba(245,158,11,0.15); padding: 2px 6px; border-radius: 4px; cursor: pointer;">DeepSeek V4 Pro (最强旗舰)</span>
+                    <span onclick="applyLLMPreset('deepseek_chat')" style="font-size: 10px; color: #cbd5e1; background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px; cursor: pointer;">deepseek-chat (通用别名)</span>
                     <span onclick="applyLLMPreset('qwen')" style="font-size: 10px; color: #a855f7; background: rgba(168,85,247,0.15); padding: 2px 6px; border-radius: 4px; cursor: pointer;">阿里通义千问</span>
-                    <span onclick="applyLLMPreset('siliconflow')" style="font-size: 10px; color: #10b981; background: rgba(16,185,129,0.15); padding: 2px 6px; border-radius: 4px; cursor: pointer;">硅基流动</span>
                 </div>
             </div>
 
@@ -1247,15 +1247,19 @@
             }
         }
 
-        // ================= ★ 通用大语言模型 API 配置与动态调试 (支持任何厂商) =================
+        // ================= ★ 通用大语言模型 API 配置与动态调试 (紧跟官方最新生产版本) =================
         const LLM_PRESETS = {
-            deepseek: {
+            deepseek_flash: {
                 base_url: "https://api.deepseek.com/v1",
-                model: "deepseek-chat" // 官方已将 deepseek-v3 / deepseek-chat 统一定向至最新的 V3
+                model: "deepseek-flash" // DeepSeek 官方最新生产主力 V4.1-Flash (极速原生多模态支持)
             },
-            deepseek_r1: {
+            deepseek_pro: {
                 base_url: "https://api.deepseek.com/v1",
-                model: "deepseek-reasoner" // DeepSeek-R1 深度思考最新旗舰
+                model: "deepseek-v4-pro" // DeepSeek 官方最新旗舰 V4-Pro GA 正式版
+            },
+            deepseek_chat: {
+                base_url: "https://api.deepseek.com/v1",
+                model: "deepseek-chat" // 官方经典兼容别名 (已自动热路由至最新生产通道)
             },
             qwen: {
                 base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1",
