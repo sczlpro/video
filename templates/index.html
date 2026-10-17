@@ -1104,10 +1104,20 @@
             initRoleState();
             renderScenePills();
             syncHighlights();
+            await checkGlobalLLMStatus();
             await restoreActiveRenderJobs();
             await loadLatestMasterVideo();
             syncHistoryTotalCount();
         });
+
+        // 页面打开或刷新时，自动检测并常态点亮大模型中枢状态灯
+        async function checkGlobalLLMStatus() {
+            try {
+                const res = await fetch("/api/v1/settings/llm");
+                const data = await res.json();
+                updateLLMDot(data.is_configured);
+            } catch(e) {}
+        }
 
         async function syncHistoryTotalCount() {
             try {

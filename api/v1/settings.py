@@ -34,16 +34,22 @@ def get_config():
 
 @router.post("/llm", summary="保存自定义大模型 API 配置")
 def update_config(req: LLMConfigRequest):
-    """保存用户输入的自定义 API 配置"""
+    """保存用户输入的自定义 API 配置 (支持留空保持现有 Key)"""
+    current_cfg = get_llm_config()
+    final_key = req.api_key.strip()
+    # 如果用户没有输入新 Key，但原本已有配置好的 Key，则自动沿用现有 Key！
+    if not final_key and current_cfg.get("api_key"):
+        final_key = current_cfg.get("api_key")
+
     ok = save_llm_config({
         "base_url": req.base_url.strip(),
-        "api_key": req.api_key.strip(),
+        "api_key": final_key,
         "model": req.model.strip(),
         "temperature": req.temperature
     })
     if not ok:
         raise HTTPException(status_code=500, detail="保存配置失败")
-    return {"success": True, "message": "大模型 API 配置已成功持久化保存！"}
+    return {"success": True, "message": "大模型 API 配置已成功持久化保存！", "is_configured": bool(final_key)}
 
 @router.post("/llm/test", summary="测试自定义大模型 API 连通性")
 async def test_config(req: LLMTestRequest):
