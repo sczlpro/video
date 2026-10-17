@@ -102,17 +102,17 @@
             border-color: rgba(255, 255, 255, 0.18);
         }
 
-        /* 中央视口：整体上移紧凑布局，释放下半屏黄金输入与预览空间 */
+        /* 中央视口：精巧紧凑布局，彻底消除中间多余黑边空白 */
         .viewport-area {
-            flex: 1;
+            flex: 0 0 auto;
             position: relative;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
+            justify-content: center;
             overflow: hidden;
             background: transparent;
-            padding: 2px 12px 6px 12px;
+            padding: 4px 12px 6px 12px;
             width: 100%;
             box-sizing: border-box;
             min-height: 0;
@@ -121,8 +121,8 @@
         .video-player-box {
             width: 100%;
             max-width: 420px;
-            height: 100%;
-            max-height: 42vh;
+            height: 38vh;
+            max-height: 38vh;
             position: relative;
             display: flex;
             align-items: center;
@@ -335,13 +335,19 @@
             transform: scale(1.03);
         }
 
-        /* 底部即梦输入卡片 (加宽+高度自适应) */
+        /* 底部即梦输入卡片 (充满剩余下半屏，不再留黑洞空隙) */
         .bottom-console-wrapper {
-            padding: 0 16px calc(14px + env(safe-area-inset-bottom)) 16px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 4px 16px calc(14px + env(safe-area-inset-bottom)) 16px;
             z-index: 20;
             max-width: 960px;
             width: 100%;
             margin: 0 auto;
+            box-sizing: border-box;
+            min-height: 0;
         }
 
         .prompt-card {
@@ -352,12 +358,16 @@
             backdrop-filter: blur(20px);
             position: relative;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            display: flex;
+            flex-direction: column;
+            max-height: 100%;
         }
 
         .prompt-input-container {
             position: relative;
             width: 100%;
-            min-height: 80px;
+            min-height: 110px;
+            flex: 1;
         }
 
         .prompt-backdrop {
@@ -374,7 +384,7 @@
 
         .prompt-highlights {
             width: 100%;
-            min-height: 80px;
+            min-height: 110px;
             box-sizing: border-box;
             font-family: inherit;
             font-size: 15px;
@@ -382,6 +392,33 @@
             white-space: pre-wrap;
             word-break: break-word;
             color: #f1f5f9;
+            padding: 0;
+            margin: 0;
+        }
+
+        .prompt-textarea {
+            position: relative;
+            width: 100%;
+            min-height: 110px;
+            max-height: 46vh;
+            background: transparent;
+            border: none;
+            color: transparent;
+            caret-color: #38bdf8;
+            font-size: 15px;
+            line-height: 1.6;
+            outline: none;
+            resize: none;
+            font-family: inherit;
+            overflow-y: auto;
+            box-sizing: border-box;
+            white-space: pre-wrap;
+            word-break: break-word;
+            padding: 0;
+            margin: 0;
+            z-index: 2;
+            transition: height 0.1s ease;
+        }
             padding: 0;
             margin: 0;
         }
