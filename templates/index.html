@@ -1364,12 +1364,35 @@
             syncHistoryTotalCount();
         });
 
-        // 页面打开或刷新时，自动检测并常态点亮大模型中枢状态灯
+        // 页面打开或刷新时，自动检测并常态点亮大模型中枢状态灯 (支持容器重启后从 localStorage 自动静默回填恢复！)
         async function checkGlobalLLMStatus() {
             try {
                 const res = await fetch("/api/v1/settings/llm");
                 const data = await res.json();
-                updateLLMDot(data.is_configured);
+                if (data.is_configured) {
+                    updateLLMDot(true);
+                } else {
+                    // 如果后端未配置（例如 Sealos 容器重启），自动从浏览器 localStorage 恢复回填！
+                    const saved = localStorage.getItem("ayong_llm_config");
+                    if (saved) {
+                        try {
+                            const cfg = JSON.parse(saved);
+                            if (cfg && cfg.api_key) {
+                                const restoreRes = await fetch("/api/v1/settings/llm", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify(cfg)
+                                });
+                                const restoreData = await restoreRes.json();
+                                if (restoreData.success) {
+                                    updateLLMDot(true);
+                                    return;
+                                }
+                            }
+                        } catch(e) {}
+                    }
+                    updateLLMDot(false);
+                }
             } catch(e) {}
         }
 
@@ -1745,14 +1768,30 @@
                 return;
             }
 
+            // 如果输入框留空，尝试从 localStorage 沿用现有 Key
+            let effectiveKey = apiKey;
+            if (!effectiveKey) {
+                try {
+                    const saved = JSON.parse(localStorage.getItem("ayong_llm_config") || "{}");
+                    if (saved && saved.api_key) effectiveKey = saved.api_key;
+                } catch(e) {}
+            }
+
             try {
                 const res = await fetch("/api/v1/settings/llm", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ base_url: baseUrl, model: model, api_key: apiKey })
+                    body: JSON.stringify({ base_url: baseUrl, model: model, api_key: effectiveKey })
                 });
                 const data = await res.json();
                 if (data.success) {
+                    if (effectiveKey) {
+                        localStorage.setItem("ayong_llm_config", JSON.stringify({
+                            base_url: baseUrl,
+                            model: model,
+                            api_key: effectiveKey
+                        }));
+                    }
                     alert("🎉 大模型中枢配置已成功持久化保存！【AI文案一键写分镜】与【提示词场景扩展】已通用共享此密钥！");
                     updateLLMDot(true);
                     closeLLMSettingsModal();
@@ -2512,10 +2551,10 @@
                 });
 
                 const data = await res.json();
-                if (res.ok && data.success && data.reply) {
-                    chatConversation.push({ role: "assistant", content: data.reply });
+                if (res.ok && data.success && data.reply && data.reply.trim().length > 0) {
+                    chatConversation.push({ role: "assistant", content: data.reply.trim() });
                 } else {
-                    const errDetail = data.detail || (typeof data === 'string' ? data : JSON.stringify(data));
+                    const errDetail = data.detail || ((data && data.reply === "") ? "大模型返回内容为空（可能触发Token上限截断），请重试！" : (typeof data === 'string' ? data : JSON.stringify(data)));
                     chatConversation.push({ role: "assistant", content: `❌ 请求失败: ${errDetail}` });
                 }
             } catch (err) {

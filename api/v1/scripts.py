@@ -177,9 +177,11 @@ async def chat_with_script_ai(req: AIChatRequest):
 
     try:
         reply = await call_llm_chat(llm_messages, json_mode=False)
+        if not reply or not reply.strip():
+            raise RuntimeError("大模型未能返回有效内容，请稍后重试。")
         return {
             "success": True,
-            "reply": reply
+            "reply": reply.strip()
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"调用大模型对话失败: {str(e)}")
