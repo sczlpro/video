@@ -2039,20 +2039,21 @@
                 });
 
                 const data = await res.json();
-                if (data.success && data.script_table) {
+                if (res.ok && data.success && data.script_table) {
                     const textarea = document.getElementById("promptInput");
                     textarea.value = data.script_table;
                     closeAIWriterModal();
                     handlePromptInput();
                     alert("🎉 15秒纯中文实战分镜已生成并填入输入框！请确认无误后点击右下角【生成】出片！");
                 } else {
-                    alert("生成失败: " + (data.detail || "未知异常，请检查API设置"));
-                    tip.innerText = "❌ 生成异常: " + (data.detail || "请检查设置");
+                    const errDetail = data.detail || (typeof data === 'string' ? data : JSON.stringify(data));
+                    alert("生成失败原因:\n" + errDetail);
+                    tip.innerText = "❌ 生成失败: " + errDetail;
                     tip.style.color = "#ef4444";
                 }
             } catch(e) {
-                alert("请求异常: " + e);
-                tip.innerText = "❌ 连接异常: " + e;
+                alert("请求通信异常:\n" + e);
+                tip.innerText = "❌ 通信异常: " + e;
                 tip.style.color = "#ef4444";
             } finally {
                 btn.disabled = false;
