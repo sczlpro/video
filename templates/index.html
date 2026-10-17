@@ -886,17 +886,14 @@
         </div>
     </div>
 
-    <!-- 0.2 自定义大语言模型配置模态框 (支持 DeepSeek / 通义千问 / 任意 OpenAI 兼容接口) -->
+    <!-- 0.2 自定义大语言模型配置模态框 (极简通透风格) -->
     <div class="drawer-modal" id="llmSettingsModal" style="z-index: 1500; align-items: center;">
-        <div class="confirm-dialog" style="max-width: 420px; width: 92%; padding: 20px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <span style="font-size: 15px; font-weight: 800; color: #fff;">⚙️ 自定义文本模型 (编译中枢)</span>
+        <div class="confirm-dialog" style="max-width: 420px; width: 92%; padding: 18px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <span id="roleModalTitle" style="font-size: 15px; font-weight: 800; color: #fff;">自定义文本模型</span>
                 <button class="icon-circle-btn" style="width: 26px; height: 26px; font-size: 11px;" onclick="closeLLMSettingsModal()">✕</button>
             </div>
             
-            <p style="font-size: 11px; color: var(--jimeng-text-sub); line-height: 1.5; margin-bottom: 10px;">
-                全局通用大模型中枢：负责【AI金牌编剧一键写分镜】与【普通中文提示词影视级扩展】，配置一次全局永久生效！
-            </p>
             <div id="llmConfigStatusBadge" style="font-size: 11px; padding: 6px 10px; background: rgba(255,255,255,0.04); border-radius: 6px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.08);">
                 正在检测配置状态...
             </div>
@@ -904,12 +901,6 @@
             <div style="margin-bottom: 12px;">
                 <label style="font-size: 11px; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 4px;">接口 Base URL：</label>
                 <input type="text" id="inputLLMBaseUrl" placeholder="如: https://api.deepseek.com/v1" style="width: 100%; padding: 9px 12px; background: #0c0c12; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; color: #fff; font-size: 12px; outline: none; box-sizing: border-box;">
-                <div style="display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap;">
-                    <span onclick="applyLLMPreset('deepseek_flash')" style="font-size: 10px; color: #38bdf8; background: rgba(56,189,248,0.15); padding: 2px 6px; border-radius: 4px; cursor: pointer;">DeepSeek V4.1 Flash (官方推荐)</span>
-                    <span onclick="applyLLMPreset('deepseek_pro')" style="font-size: 10px; color: #f59e0b; background: rgba(245,158,11,0.15); padding: 2px 6px; border-radius: 4px; cursor: pointer;">DeepSeek V4 Pro (最强旗舰)</span>
-                    <span onclick="applyLLMPreset('deepseek_chat')" style="font-size: 10px; color: #cbd5e1; background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px; cursor: pointer;">deepseek-chat (通用别名)</span>
-                    <span onclick="applyLLMPreset('qwen')" style="font-size: 10px; color: #a855f7; background: rgba(168,85,247,0.15); padding: 2px 6px; border-radius: 4px; cursor: pointer;">阿里通义千问</span>
-                </div>
             </div>
 
             <div style="margin-bottom: 12px;">
@@ -922,12 +913,12 @@
                 <input type="password" id="inputLLMApiKey" placeholder="填入该厂商的 sk-xxxx" style="width: 100%; padding: 9px 12px; background: #0c0c12; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; color: #fff; font-size: 12px; outline: none; box-sizing: border-box;">
             </div>
 
-            <div style="display: flex; gap: 8px;">
-                <button id="btnTestLLM" onclick="testLLMConfigConnection()" style="flex: 1; padding: 10px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18); border-radius: 8px; color: #cbd5e1; font-size: 12px; font-weight: 700; cursor: pointer;">
-                    🔌 测试连通性
+            <div style="display: flex; gap: 10px;">
+                <button id="btnTestLLM" onclick="testLLMConfigConnection()" style="flex: 1; padding: 10px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18); border-radius: 10px; color: #cbd5e1; font-size: 13px; font-weight: 800; cursor: pointer;">
+                    测试
                 </button>
-                <button onclick="saveLLMConfigSubmit()" style="flex: 1; padding: 10px; background: #38bdf8; border: none; border-radius: 8px; color: #000; font-size: 12px; font-weight: 800; cursor: pointer;">
-                    💾 保存配置
+                <button onclick="saveLLMConfigSubmit()" style="flex: 1; padding: 10px; background: #38bdf8; border: none; border-radius: 10px; color: #000; font-size: 13px; font-weight: 800; cursor: pointer;">
+                    保存
                 </button>
             </div>
             <div id="llmTestResultTip" style="font-size: 11px; margin-top: 8px; text-align: center; display: none;"></div>
