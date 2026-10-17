@@ -24,11 +24,17 @@ class QuickAIWriterRequest(BaseModel):
     style: str = Field(default="pain_point", description="风格: pain_point (痛点共鸣), case_story (闪电案例), value_dry (干货拆招), anti_scam (撕套路反认知), trust_cta (10年老店强号召)")
 
 def load_local_knowledge_base() -> str:
-    """动态读取本地知识库所有真实 Markdown 文件，以及工作区 AGENTS.md 军规，支持用户随时修改随时生效！"""
+    """动态自适应读取知识库：本地桌面优先，云端容器回退内置目录"""
     combined_knowledge = []
 
+    # 智能探测知识库根目录
+    desktop_wenan = Path(r"C:\Users\Administrator\Desktop\文案")
+    bundled_wenan = Path(__file__).resolve().parent.parent.parent / "knowledge_base"
+
+    target_root = desktop_wenan if desktop_wenan.exists() else bundled_wenan
+
     # 1. 读取文案工作区最高军规 (AGENTS.md)
-    agents_file = Path(r"C:\Users\Administrator\Desktop\文案\AGENTS.md")
+    agents_file = target_root / "AGENTS.md"
     if agents_file.exists():
         try:
             combined_knowledge.append(f"=== 文案工作区总指挥军规 (AGENTS.md) ===\n{agents_file.read_text(encoding='utf-8')}\n")
@@ -36,7 +42,7 @@ def load_local_knowledge_base() -> str:
             pass
 
     # 2. 读取知识库子目录下所有专业资料（电价、真实案例、套路避坑、异议金句）
-    kb_dir = Path(r"C:\Users\Administrator\Desktop\文案\知识库")
+    kb_dir = target_root / "知识库"
     if kb_dir.exists():
         for md_file in sorted(kb_dir.glob("*.md")):
             try:
