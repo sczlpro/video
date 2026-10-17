@@ -24,18 +24,27 @@ class QuickAIWriterRequest(BaseModel):
     style: str = Field(default="pain_point", description="风格: pain_point (痛点共鸣), case_story (闪电案例), value_dry (干货拆招), anti_scam (撕套路反认知), trust_cta (10年老店强号召)")
 
 def load_local_knowledge_base() -> str:
-    """动态读取本地知识库所有真实 Markdown 文件，支持用户随时修改随时生效！"""
-    kb_dir = Path(r"C:\Users\Administrator\Desktop\文案\知识库")
-    if not kb_dir.exists():
-        return ""
-    
+    """动态读取本地知识库所有真实 Markdown 文件，以及工作区 AGENTS.md 军规，支持用户随时修改随时生效！"""
     combined_knowledge = []
-    for md_file in sorted(kb_dir.glob("*.md")):
+
+    # 1. 读取文案工作区最高军规 (AGENTS.md)
+    agents_file = Path(r"C:\Users\Administrator\Desktop\文案\AGENTS.md")
+    if agents_file.exists():
         try:
-            content = md_file.read_text(encoding="utf-8")
-            combined_knowledge.append(f"=== 知识库板块: {md_file.name} ===\n{content}\n")
+            combined_knowledge.append(f"=== 文案工作区总指挥军规 (AGENTS.md) ===\n{agents_file.read_text(encoding='utf-8')}\n")
         except Exception:
             pass
+
+    # 2. 读取知识库子目录下所有专业资料（电价、真实案例、套路避坑、异议金句）
+    kb_dir = Path(r"C:\Users\Administrator\Desktop\文案\知识库")
+    if kb_dir.exists():
+        for md_file in sorted(kb_dir.glob("*.md")):
+            try:
+                content = md_file.read_text(encoding="utf-8")
+                combined_knowledge.append(f"=== 专业知识库板块: {md_file.name} ===\n{content}\n")
+            except Exception:
+                pass
+
     return "\n".join(combined_knowledge)
 
 @router.post("/generate-quick-ai-script", summary="★ 网页端一键调用DeepSeek与本地知识库，秒出15秒80字实战分镜表格")

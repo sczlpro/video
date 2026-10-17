@@ -819,7 +819,10 @@
 
             <!-- 生成提示与说明 -->
             <div id="aiWriterStatusTip" style="font-size: 11px; color: #10b981; margin-bottom: 12px; line-height: 1.4; text-align: center;">
-                💡 自动调取本地重庆电价与珞璜案例知识库，严格输出 15秒 / 80字 纯中文分镜表格。
+                💡 自动调取本地知识库（电价/案例/避坑），严格输出 15秒/80字 纯中文分镜表格。
+                <div style="margin-top: 4px;">
+                    <a href="javascript:void(0)" onclick="closeAIWriterModal(); openLLMSettingsModal();" style="color: #38bdf8; text-decoration: underline; font-size: 10px;">⚙️ 配置/更换文案大模型 API Key</a>
+                </div>
             </div>
 
             <button id="btnExecuteAIWriter" onclick="submitGenerateAIWriterScript()" class="btn-generate-main ready" style="width: 100%; justify-content: center; padding: 10px; font-size: 13px; border-radius: 10px;">
