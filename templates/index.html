@@ -2039,12 +2039,16 @@
                 });
 
                 const data = await res.json();
-                if (res.ok && data.success && data.script_table) {
+                if (res.ok && data.success && data.script_table && data.script_table.trim().length > 0) {
                     const textarea = document.getElementById("promptInput");
                     textarea.value = data.script_table;
                     closeAIWriterModal();
                     handlePromptInput();
                     alert("🎉 15秒纯中文实战分镜已生成并填入输入框！请确认无误后点击右下角【生成】出片！");
+                } else if (res.ok && data.success && (!data.script_table || data.script_table.trim().length === 0)) {
+                    alert("大模型返回的内容为空，请稍后重试或更换打法风格！");
+                    tip.innerText = "⚠️ 大模型返回空内容，请重试";
+                    tip.style.color = "#fbbf24";
                 } else {
                     const errDetail = data.detail || (typeof data === 'string' ? data : JSON.stringify(data));
                     alert("生成失败原因:\n" + errDetail);

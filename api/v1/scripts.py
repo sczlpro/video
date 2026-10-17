@@ -107,11 +107,20 @@ async def generate_quick_ai_script(req: QuickAIWriterRequest):
         ], json_mode=False)
 
         # 清洗可能存在的 markdown 代码块反引号
-        clean_tsv = reply.replace("```tsv", "").replace("```text", "").replace("```", "").strip()
+        raw_text = reply.replace("```tsv", "").replace("```text", "").replace("```markdown", "").replace("```", "").strip()
+
+        # 智能提取纯净 TSV 表格行，防止大模型前后的啰嗦废话干扰
+        lines = [l.rstrip() for l in raw_text.split("\n") if l.strip()]
+        table_lines = [l for l in lines if ("\t" in l or "时间" in l or re.search(r"\d+\s*[-~至到]\s*\d+\s*(?:s|秒)?", l))]
+        final_tsv = "\n".join(table_lines) if table_lines else raw_text
+
+        # 如果提取出的表格为空，直接以原始内容兜底，绝对不为空字符串
+        if not final_tsv.strip():
+            final_tsv = raw_text
 
         return {
             "success": True,
-            "script_table": clean_tsv,
+            "script_table": final_tsv,
             "category": req.category,
             "style": req.style,
             "message": "🎉 封成电器金牌文案已秒级生成完毕！"
