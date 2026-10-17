@@ -773,14 +773,11 @@
         </div>
     </div>
 
-    <!-- ★ 封成电器·AI金牌编剧 (一键根据本地真实知识库出分镜) 弹窗 -->
+    <!-- ★ AI文案 (一键根据本地真实知识库出分镜) 弹窗 (极简清爽风格) -->
     <div class="drawer-modal" id="aiWriterModal" style="z-index: 1500; align-items: center; background: rgba(0,0,0,0.85); backdrop-filter: blur(15px);">
         <div class="confirm-dialog" style="max-width: 440px; width: 92%; padding: 18px; border: 1.5px solid rgba(168, 85, 247, 0.5); border-radius: 20px; box-shadow: 0 25px 70px rgba(0,0,0,0.95);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px;">
-                <div style="display: flex; align-items: center; gap: 6px;">
-                    <span style="font-size: 18px;">✨</span>
-                    <span style="font-size: 14px; font-weight: 800; color: #fff;">封成电器 · AI金牌编剧</span>
-                </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px;">
+                <span style="font-size: 15px; font-weight: 800; color: #fff;">AI文案</span>
                 <button class="icon-circle-btn" style="width: 26px; height: 26px; font-size: 11px;" onclick="closeAIWriterModal()">✕</button>
             </div>
 
@@ -797,35 +794,32 @@
                 </div>
             </div>
 
-            <!-- 2. 视频爆破风格打法单选 -->
+            <!-- 2. 视频爆破风格打法单选 (纯风格名称，去除冗余括号) -->
             <div style="font-size: 11px; font-weight: 700; color: #cbd5e1; margin-bottom: 6px;">2. 选择短视频打法风格：</div>
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 16px;">
-                <div class="ai-style-pill active" id="aiStyle_pain_point" onclick="selectAIWriterStyle('pain_point')" style="padding: 7px 8px; background: rgba(168,85,247,0.2); border: 1.5px solid #a855f7; border-radius: 8px; cursor: pointer; color: #fff; font-size: 11px; font-weight: 700;">
-                    🔥 痛点掀桌型 (直击刺客)
+                <div class="ai-style-pill active" id="aiStyle_pain_point" onclick="selectAIWriterStyle('pain_point')" style="padding: 9px 8px; background: rgba(168,85,247,0.2); border: 1.5px solid #a855f7; border-radius: 8px; cursor: pointer; color: #fff; font-size: 12px; font-weight: 700; text-align: center;">
+                    🔥 痛点掀桌型
                 </div>
-                <div class="ai-style-pill" id="aiStyle_case_story" onclick="selectAIWriterStyle('case_story')" style="padding: 7px 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; cursor: pointer; color: #94a3b8; font-size: 11px; font-weight: 700;">
-                    ⚡ 真实案例型 (珞璜数字)
+                <div class="ai-style-pill" id="aiStyle_case_story" onclick="selectAIWriterStyle('case_story')" style="padding: 9px 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; cursor: pointer; color: #94a3b8; font-size: 12px; font-weight: 700; text-align: center;">
+                    ⚡ 真实案例型
                 </div>
-                <div class="ai-style-pill" id="aiStyle_anti_scam" onclick="selectAIWriterStyle('anti_scam')" style="padding: 7px 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; cursor: pointer; color: #94a3b8; font-size: 11px; font-weight: 700;">
-                    🛡️ 专撕套路型 (假免费真贷)
+                <div class="ai-style-pill" id="aiStyle_anti_scam" onclick="selectAIWriterStyle('anti_scam')" style="padding: 9px 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; cursor: pointer; color: #94a3b8; font-size: 12px; font-weight: 700; text-align: center;">
+                    🛡️ 专撕套路型
                 </div>
-                <div class="ai-style-pill" id="aiStyle_value_dry" onclick="selectAIWriterStyle('value_dry')" style="padding: 7px 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; cursor: pointer; color: #94a3b8; font-size: 11px; font-weight: 700;">
-                    💰 干货算大账 (一度省两毛)
+                <div class="ai-style-pill" id="aiStyle_value_dry" onclick="selectAIWriterStyle('value_dry')" style="padding: 9px 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; cursor: pointer; color: #94a3b8; font-size: 12px; font-weight: 700; text-align: center;">
+                    💰 干货算大账
                 </div>
-                <div class="ai-style-pill" id="aiStyle_trust_cta" onclick="selectAIWriterStyle('trust_cta')" style="grid-column: 1 / -1; padding: 7px 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; cursor: pointer; color: #94a3b8; font-size: 11px; font-weight: 700; text-align: center;">
-                    🤝 10年老店立信型 (评论区留面积)
+                <div class="ai-style-pill" id="aiStyle_trust_cta" onclick="selectAIWriterStyle('trust_cta')" style="grid-column: 1 / -1; padding: 9px 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; cursor: pointer; color: #94a3b8; font-size: 12px; font-weight: 700; text-align: center;">
+                    🤝 10年老店立信型
                 </div>
             </div>
 
-            <!-- 生成提示与说明 -->
-            <div id="aiWriterStatusTip" style="font-size: 11px; color: #10b981; margin-bottom: 12px; line-height: 1.4; text-align: center;">
+            <!-- 生成提示与说明 (无多余冗余链接) -->
+            <div id="aiWriterStatusTip" style="font-size: 11px; color: #10b981; margin-bottom: 14px; line-height: 1.4; text-align: center;">
                 💡 自动调取本地知识库（电价/案例/避坑），严格输出 15秒/80字 纯中文分镜表格。
-                <div style="margin-top: 4px;">
-                    <a href="javascript:void(0)" onclick="closeAIWriterModal(); openLLMSettingsModal();" style="color: #38bdf8; text-decoration: underline; font-size: 10px;">⚙️ 配置/更换文案大模型 API Key</a>
-                </div>
             </div>
 
-            <button id="btnExecuteAIWriter" onclick="submitGenerateAIWriterScript()" class="btn-generate-main ready" style="width: 100%; justify-content: center; padding: 10px; font-size: 13px; border-radius: 10px;">
+            <button id="btnExecuteAIWriter" onclick="submitGenerateAIWriterScript()" class="btn-generate-main ready" style="width: 100%; justify-content: center; padding: 11px; font-size: 13px; border-radius: 10px;">
                 🚀 一键生成并填入输入框
             </button>
         </div>
