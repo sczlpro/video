@@ -37,6 +37,12 @@ def get_llm_config() -> Dict[str, Any]:
                 return {**DEFAULT_LLM_CONFIG, **json.load(f)}
         except Exception:
             pass
+
+    # 3. 环境变量兜底 (方便容器或本地环境快速免密连通)
+    env_key = os.getenv("DEEPSEEK_API_KEY") or os.getenv("LLM_API_KEY") or os.getenv("OPENAI_API_KEY")
+    if env_key:
+        return {**DEFAULT_LLM_CONFIG, "api_key": env_key}
+
     return DEFAULT_LLM_CONFIG.copy()
 
 def save_llm_config(config_data: Dict[str, Any]) -> bool:

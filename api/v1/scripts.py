@@ -128,6 +128,62 @@ async def generate_quick_ai_script(req: QuickAIWriterRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"调用大模型撰写文案失败: {str(e)}")
 
+class ChatMessage(BaseModel):
+    role: str = Field(..., description="user 或 assistant 或 system")
+    content: str = Field(..., description="消息内容")
+
+class AIChatRequest(BaseModel):
+    messages: List[ChatMessage] = Field(..., description="历史对话上下文")
+    category: Optional[str] = Field("RESIDENTIAL_CQ", description="当前业务偏好: RESIDENTIAL_CQ 或 COMMERCIAL_SC_CQ")
+
+@router.post("/chat", summary="★ 川渝光伏文案编剧大模型交互对话 (支持多轮修改与分镜生成)")
+async def chat_with_script_ai(req: AIChatRequest):
+    """
+    网页端【文案】标签专享：
+    1. 动态注入桌面【文案/知识库/】真实数据与军规；
+    2. 支持与大模型多轮自由对话交流与分镜精修；
+    3. 只要涉及文案或分镜，自动严格卡死 15 秒、75~86 字物理红线，并输出规范 TSV 表格！
+    """
+    kb_text = load_local_knowledge_base()
+
+    system_prompt = (
+        "你现在是重庆江津珞璜【封成电器】（实体店扎根珞璜开业整整10年）的店主老陈/宋勇本人兼首席金牌编剧！\n"
+        "你的任务是为你的川渝光伏短视频账号与用户进行沟通对话，撰写并精修极具杀伤力、完播率极高的 15 秒短视频获客口播分镜脚本，或解答政策与打法疑问。\n\n"
+        "【必须调用的本地真实事实与知识库数据（严禁虚构乱编）】：\n"
+        f"{kb_text}\n\n"
+        "【四大不可逾越的死线铁律】：\n"
+        "1. 总时长与字数绝对控制（物理死线）：\n"
+        "   - 所有分镜时长相加必须【严格等于 15 秒】（如 0-4s + 4-11s + 11-15s，或 0-5s + 5-10s + 10-15s）；\n"
+        "   - 所有镜头的口播台词总汉字数必须【严格卡死在 75 ~ 86 字之间】（按4字/秒计算），绝对不能超过88字，多一个字视频模型就念不完！\n"
+        "2. 业务边界与核心利益严格区分：\n"
+        "   - 🏡 重庆自建房户用：发出来的电全额上网业主不能自己用！核心利益必须是【一分钱不用掏 + 建成就发现金初装补贴费打卡（2000-5000元）+ 每年固定稳拿屋顶租金 + 免费白得一个高大隔热防雨轻钢阳光棚露台】（合规挑高2.2-3.2m，严禁砌墙封窗）！\n"
+        "   - 🏭 川渝工商业大厂房：屋顶原则上无租金！核心利益必须是【资方100%全额全资建站零垫资零负债，白天高负荷生产直接用折上折便宜电，一度电省两三毛到四毛，一年帮企业省出大几万乃至十来万纯利润净现金】！\n"
+        "3. 实体店信誉背书与高转化号召（铁律）：\n"
+        "   - 绝不在视频里邀约用户来店里坐（门槛太高没人跑）；\n"
+        "   - 视频结尾必须顺嘴提一嘴【我在珞璜开封成电器十年了，跑得了和尚跑不了庙】立住千斤信任，随后立刻引导【评论区留个屋顶面积我帮你算算】或【直接发私信】，转化率最高！\n"
+        "4. 输出格式与交互规范：\n"
+        "   - 当用户要求写文案、写分镜或修改调整分镜时，必须给出完整的标准 TSV 分镜表格（时间\\t画面场景\\t镜头运动\\t数字人动作表情\\t口播台词）；\n"
+        "   - 表格所有列（包括镜头运动）必须全部使用生动的纯中文通俗大白话；\n"
+        "   - 台词栏必须是纯粹干净的中文汉字，绝对严禁出现 <font>, <b>, <d>[Chinese] 等任何 HTML 或机器代码标签！\n"
+        "   - 动作栏必须标明机位（@正面 或 @侧面），且声明主角为唯一发言人。\n"
+        "   - 如果用户只是在咨询问题、探讨打法或日常交流，用老成持重、热情爽朗的江津实体店主口吻直接自然交谈回答。"
+    )
+
+    llm_messages = [{"role": "system", "content": system_prompt}]
+    for m in req.messages:
+        # 过滤并添加历史
+        role = m.role if m.role in ["user", "assistant", "system"] else "user"
+        llm_messages.append({"role": role, "content": m.content})
+
+    try:
+        reply = await call_llm_chat(llm_messages, json_mode=False)
+        return {
+            "success": True,
+            "reply": reply
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"调用大模型对话失败: {str(e)}")
+
 class AIGenerateScriptRequest(BaseModel):
     category: str
     topic_title: str
