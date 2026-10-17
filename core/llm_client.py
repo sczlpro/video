@@ -15,7 +15,22 @@ DEFAULT_LLM_CONFIG = {
 }
 
 def get_llm_config() -> Dict[str, Any]:
-    """读取自定义大模型 API 配置"""
+    """读取自定义大模型 API 配置 (优先查 SQLite 数据库，双重保障，杜绝容器重启失忆)"""
+    # 1. 优先从 SQLite 数据库 system_settings 读取
+    try:
+        from db.database import SessionLocal
+        from db.models import SystemSetting
+        db = SessionLocal()
+        record = db.query(SystemSetting).filter(SystemSetting.key == "llm_config").first()
+        if record and record.value:
+            data = json.loads(record.value)
+            db.close()
+            return {**DEFAULT_LLM_CONFIG, **data}
+        db.close()
+    except Exception:
+        pass
+
+    # 2. 次选本地文件
     if CONFIG_FILE.exists():
         try:
             with open(CONFIG_FILE, "r", encoding="utf-8") as f:
@@ -25,12 +40,31 @@ def get_llm_config() -> Dict[str, Any]:
     return DEFAULT_LLM_CONFIG.copy()
 
 def save_llm_config(config_data: Dict[str, Any]) -> bool:
-    """持久化保存自定义大模型 API 配置"""
+    """持久化保存自定义大模型 API 配置 (同时写入数据库与本地文件，永久有效)"""
     try:
         current = get_llm_config()
         current.update(config_data)
+
+        # 写入文件
         with open(CONFIG_FILE, "w", encoding="utf-8") as f:
             json.dump(current, f, ensure_ascii=False, indent=2)
+
+        # 写入 SQLite 数据库
+        try:
+            from db.database import SessionLocal
+            from db.models import SystemSetting
+            db = SessionLocal()
+            record = db.query(SystemSetting).filter(SystemSetting.key == "llm_config").first()
+            if not record:
+                record = SystemSetting(key="llm_config", value=json.dumps(current, ensure_ascii=False))
+                db.add(record)
+            else:
+                record.value = json.dumps(current, ensure_ascii=False)
+            db.commit()
+            db.close()
+        except Exception as edb:
+            print(f"[LLMClient] 写入数据库设置表异常: {edb}")
+
         return True
     except Exception as e:
         print(f"保存 LLM 配置失败: {e}")

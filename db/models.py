@@ -162,6 +162,14 @@ class RenderTask(Base):
 
 # ================== Pydantic 校验模型 ==================
 
+class SystemSetting(Base):
+    """系统全局配置表 (持久化保存通用大模型 API Key 等，杜绝容器重启失忆)"""
+    __tablename__ = "system_settings"
+
+    key = Column(String(64), primary_key=True)
+    value = Column(Text, nullable=False)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
 class ShotSchema(BaseModel):
     shot_order: int
     duration: int

@@ -894,9 +894,12 @@
                 <button class="icon-circle-btn" style="width: 26px; height: 26px; font-size: 11px;" onclick="closeLLMSettingsModal()">✕</button>
             </div>
             
-            <p style="font-size: 11px; color: var(--jimeng-text-sub); line-height: 1.5; margin-bottom: 14px;">
-                配置后，你随手输入的普通中文场景，将由该大模型在 0.3 秒内动态编译为好莱坞物理级精准提示词，兼容任意厂商 API！
+            <p style="font-size: 11px; color: var(--jimeng-text-sub); line-height: 1.5; margin-bottom: 10px;">
+                全局通用大模型中枢：负责【AI金牌编剧一键写分镜】与【普通中文提示词影视级扩展】，配置一次全局永久生效！
             </p>
+            <div id="llmConfigStatusBadge" style="font-size: 11px; padding: 6px 10px; background: rgba(255,255,255,0.04); border-radius: 6px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.08);">
+                正在检测配置状态...
+            </div>
 
             <div style="margin-bottom: 12px;">
                 <label style="font-size: 11px; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 4px;">接口 Base URL：</label>
@@ -1372,7 +1375,20 @@
                 const data = await res.json();
                 document.getElementById("inputLLMBaseUrl").value = data.base_url || "https://api.deepseek.com/v1";
                 document.getElementById("inputLLMModel").value = data.model || "deepseek-chat";
-                document.getElementById("inputLLMApiKey").placeholder = data.masked_key || "填入该厂商的 sk-xxxx";
+                
+                const keyInput = document.getElementById("inputLLMApiKey");
+                const statusBadge = document.getElementById("llmConfigStatusBadge");
+                if (data.is_configured) {
+                    keyInput.placeholder = data.masked_key ? `已配置: ${data.masked_key} (无需重复输入，输入新Key可覆盖)` : "已配置有效 API Key";
+                    if (statusBadge) {
+                        statusBadge.innerHTML = `<span style="color:#10b981; font-weight:800;">✅ 已成功绑定 ${data.model}</span> (出文案与场景编译通用)`;
+                    }
+                } else {
+                    keyInput.placeholder = "填入该厂商的 sk-xxxx";
+                    if (statusBadge) {
+                        statusBadge.innerHTML = `<span style="color:#f59e0b; font-weight:800;">⚠️ 未配置 API Key</span> (请输入后点击保存)`;
+                    }
+                }
                 updateLLMDot(data.is_configured);
             } catch(e) {}
         }
@@ -1448,7 +1464,7 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    alert("🎉 大模型编译中枢配置已成功持久化保存！");
+                    alert("🎉 大模型中枢配置已成功持久化保存！【AI文案一键写分镜】与【提示词场景扩展】已通用共享此密钥！");
                     updateLLMDot(true);
                     closeLLMSettingsModal();
                 } else {
