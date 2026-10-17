@@ -102,226 +102,6 @@
             border-color: rgba(255, 255, 255, 0.18);
         }
 
-        /* 顶部文案与出片标签切换栏 */
-        .top-nav-tabs {
-            display: flex;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 9999px;
-            padding: 3px;
-            gap: 4px;
-            backdrop-filter: blur(10px);
-        }
-        .top-nav-tab {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 5px 16px;
-            border-radius: 9999px;
-            border: none;
-            background: transparent;
-            color: #94a3b8;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            user-select: none;
-            white-space: nowrap;
-        }
-        .top-nav-tab:hover {
-            color: #f8fafc;
-        }
-        .top-nav-tab.active {
-            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
-            color: #ffffff;
-            font-weight: 800;
-            box-shadow: 0 2px 10px rgba(168, 85, 247, 0.45);
-        }
-
-        /* 文案标签：对话流视口 */
-        .chat-messages-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 6px 2px 10px 2px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            min-height: 0;
-            scrollbar-width: thin;
-            scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
-        }
-        .chat-messages-container::-webkit-scrollbar {
-            width: 5px;
-        }
-        .chat-messages-container::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 9999px;
-        }
-        .chat-msg-row {
-            display: flex;
-            gap: 8px;
-            max-width: 100%;
-            animation: fadeIn 0.25s ease-out;
-        }
-        .chat-msg-row.user {
-            justify-content: flex-end;
-        }
-        .chat-msg-row.assistant {
-            justify-content: flex-start;
-        }
-        .chat-bubble-user {
-            background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%);
-            color: #ffffff;
-            padding: 9px 13px;
-            border-radius: 16px 16px 4px 16px;
-            font-size: 13px;
-            line-height: 1.55;
-            max-width: 85%;
-            word-break: break-word;
-            box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
-        }
-        .chat-bubble-assistant {
-            background: #14141c;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            color: #f1f5f9;
-            padding: 12px 14px;
-            border-radius: 16px 16px 16px 4px;
-            font-size: 13px;
-            line-height: 1.6;
-            max-width: 100%;
-            width: 100%;
-            word-break: break-word;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-            box-sizing: border-box;
-        }
-        .chat-table-wrapper {
-            overflow-x: auto;
-            margin: 8px 0;
-            border: 1px solid rgba(168, 85, 247, 0.35);
-            border-radius: 10px;
-            background: rgba(0, 0, 0, 0.45);
-        }
-        .chat-tsv-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 11px;
-            text-align: left;
-        }
-        .chat-tsv-table th {
-            background: rgba(168, 85, 247, 0.2);
-            color: #c084fc;
-            padding: 8px 10px;
-            border-bottom: 1px solid rgba(168, 85, 247, 0.3);
-            font-weight: 800;
-            white-space: nowrap;
-        }
-        .chat-tsv-table td {
-            padding: 8px 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-            color: #cbd5e1;
-            vertical-align: top;
-            line-height: 1.45;
-        }
-        .chat-tsv-table tr:last-child td {
-            border-bottom: none;
-        }
-        .chat-actions-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 10px;
-            padding-top: 8px;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-            flex-wrap: wrap;
-        }
-        .btn-chat-action {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 5px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            background: rgba(255, 255, 255, 0.06);
-            color: #cbd5e1;
-            transition: all 0.2s ease;
-        }
-        .btn-chat-action:hover {
-            background: rgba(255, 255, 255, 0.15);
-            color: #fff;
-        }
-        .btn-chat-action.primary {
-            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
-            border-color: #a855f7;
-            color: #fff;
-            font-weight: 800;
-            box-shadow: 0 2px 10px rgba(168, 85, 247, 0.35);
-        }
-        .btn-chat-action.primary:hover {
-            filter: brightness(1.1);
-            transform: scale(1.02);
-        }
-
-        /* 文案标签：底部对话输入卡片 */
-        .chat-input-card {
-            background: #111116;
-            border: 1.5px solid rgba(255, 255, 255, 0.18);
-            border-radius: 16px;
-            padding: 8px 12px 6px 12px;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.12);
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-        }
-        .chat-textarea {
-            width: 100%;
-            background: transparent;
-            border: none;
-            outline: none;
-            resize: none;
-            font-size: 14px;
-            color: #f8fafc;
-            font-family: inherit;
-            line-height: 1.5;
-            min-height: 84px;
-            height: 84px;
-            max-height: 160px;
-        }
-        .chat-textarea::placeholder {
-            color: rgba(148, 163, 184, 0.6);
-        }
-        .chat-input-bottom-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 4px;
-            padding-top: 4px;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
-        }
-        .btn-send-chat {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
-            border: none;
-            color: #ffffff;
-            font-size: 12px;
-            font-weight: 800;
-            padding: 6px 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 8px rgba(168, 85, 247, 0.4);
-        }
-        .btn-send-chat:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
         /* 中央视口：严格占据屏幕约 2/3 高度 (60vh)，大屏沉浸顶满 */
         .viewport-area {
             flex: 0 0 60vh;
@@ -846,22 +626,12 @@
 </head>
 <body>
 
-    <!-- 顶部导航栏 (左侧当前成员席位身份 + 中间文案与出片标签切换 + 右上角横向三点主菜单) -->
+    <!-- 顶部导航栏 (左侧当前成员席位身份 + 右侧横向三点主菜单) -->
     <header class="top-navbar" style="justify-content: space-between; position: relative;">
         <!-- 左侧当前席位身份徽标 (点击可切换成员或修改密码) -->
         <div onclick="openMemberSwitchModal()" style="display: flex; align-items: center; gap: 6px; cursor: pointer; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 9999px;" title="点击切换席位或修改密码">
             <span style="font-size: 13px;">👤</span>
             <span id="currentMemberNameLabel" style="font-size: 13px; font-weight: 800; color: #f1f5f9;">宋勇</span>
-        </div>
-
-        <!-- 中间顶级标签导航：文案 与 出片 快速无缝切换 -->
-        <div class="top-nav-tabs">
-            <button id="navTabScript" class="top-nav-tab" onclick="switchMainTab('script')">
-                <span>文案</span>
-            </button>
-            <button id="navTabProduce" class="top-nav-tab active" onclick="switchMainTab('produce')">
-                <span>出片</span>
-            </button>
         </div>
 
         <!-- 右侧横向三个点主菜单按钮 (···) -->
@@ -892,112 +662,84 @@
         </div>
     </header>
 
-    <!-- ★ 视图1：【文案】大模型直接对话界面 -->
-    <div id="viewScript" class="main-tab-view" style="display: none; flex-direction: column; flex: 1; min-height: 0; width: 100%; max-width: 960px; margin: 0 auto; overflow: hidden; padding: 6px 14px calc(10px + env(safe-area-inset-bottom)) 14px; box-sizing: border-box;">
-        <!-- 聊天对话流滚动展示区 (纯净清爽，顶部不显示繁杂冗余文本) -->
-        <div id="chatMessagesContainer" class="chat-messages-container"></div>
+    <!-- 中央沉浸视口 (未出片时若有进行中任务展示动态渲染占位，出片后播放母带，无任务时呈现标准16:9剧场) -->
+    <main class="viewport-area">
+        <div class="video-player-box">
+            <!-- 正在渲染中的动态占位卡片 (纯净置于16:9框内，无多余顶部悬浮卡片打扰) -->
+            <div id="renderingPlaceholder" style="display: none; width: 100%; height: 100%; background: #0a0a10; border-radius: 16px; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; text-align: center;">
+                <div style="width: 44px; height: 44px; border-radius: 50%; border: 3px solid rgba(139,92,246,0.2); border-top-color: #a855f7; animation: spin 1s linear infinite; margin-bottom: 12px;"></div>
+                <div id="placeholderStepText" style="font-size: 13px; font-weight: 800; color: #fff; margin-bottom: 6px;">云端正在调度算力渲染中...</div>
+                <div id="placeholderPercentText" style="font-size: 18px; font-weight: 900; color: #c084fc; margin-bottom: 8px;">25%</div>
+                <div id="placeholderSegsText" style="font-size: 11px; color: #94a3b8; max-width: 280px; line-height: 1.4;"></div>
+            </div>
 
-        <!-- 底部大模型对话输入卡片 (高度加大一倍，纯净无多余字样) -->
-        <div class="chat-input-card">
-            <textarea 
-                id="chatUserInput" 
-                class="chat-textarea" 
-                rows="4" 
-                placeholder="直接和大模型自由对话，例如：'把第二段改成厂房车间'、'再泼辣接地气一点'、'帮我写一条自建房防骗脚本'..."
-                onkeydown="handleChatKeydown(event)"
-            ></textarea>
-            <div class="chat-input-bottom-bar">
-                <div style="font-size: 11px; color: #64748b;">
-                    <span onclick="clearChatHistory()" style="cursor: pointer; transition: color 0.2s ease;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#64748b'">清空对话</span>
-                </div>
-                <button id="btnSendChat" class="btn-send-chat" onclick="sendChatMessage()">
-                    <span>发送</span>
+            <!-- 30 秒成品母带播放器 -->
+            <video id="masterVideoPlayer" controls playsinline style="display: none;"></video>
+        </div>
+    </main>
+
+    <style>
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+
+    <!-- 底部即梦输入卡片与发牌栏 -->
+    <footer class="bottom-console-wrapper">
+        <!-- 顶部操作栏 (统一单行紧凑排布：@正面 + @侧面 + ⋮菜单 + 紧跟[已传缩略图] + 紧跟[＋加号]，绝对顺畅自然) -->
+        <div class="input-top-toolbar" style="display: flex; align-items: center; justify-content: flex-start; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; width: 100%;">
+            <!-- 主角机位区与管理三点 -->
+            <div id="characterToolbarArea" style="display: flex; align-items: center; gap: 8px;">
+            </div>
+
+            <!-- 场景图素材栏 (缩略图排在前面，新增加号紧跟在素材后面) -->
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                <!-- 已传场景图缩略图列表 (纯图片小方块+右上角小数字角标，绝不占多余宽度) -->
+                <div id="scenePillContainer" style="display: none; align-items: center; gap: 6px;"></div>
+
+                <!-- ➕ 场景图加号按钮 (排在所有已有素材后面，小巧圆角方块，极度顺眼) -->
+                <button class="btn-add-scene" onclick="triggerSceneUpload()" title="点击添加场景图" style="width: 32px; height: 32px; border-radius: 8px; background: rgba(14, 165, 233, 0.12); border: 1.5px dashed rgba(56, 189, 248, 0.45); color: #38bdf8; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; flex-shrink: 0;">
+                    <span style="font-size: 16px; font-weight: 800; line-height: 1;">＋</span>
                 </button>
+                <input type="file" id="sceneFileInput" accept="image/*" multiple style="display: none;" onchange="handleSceneFilesSelected(event)">
             </div>
         </div>
-    </div>
 
-    <!-- ★ 视图2：【出片】随身生产线界面 (2:1视口与控制台) -->
-    <div id="viewProduce" class="main-tab-view" style="display: flex; flex-direction: column; flex: 1; min-height: 0; width: 100%; overflow: hidden;">
-        <!-- 中央沉浸视口 (未出片时若有进行中任务展示动态渲染占位，出片后播放母带，无任务时呈现标准16:9剧场) -->
-        <main class="viewport-area">
-            <div class="video-player-box">
-                <!-- 正在渲染中的动态占位卡片 (纯净置于16:9框内，无多余顶部悬浮卡片打扰) -->
-                <div id="renderingPlaceholder" style="display: none; width: 100%; height: 100%; background: #0a0a10; border-radius: 16px; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; text-align: center;">
-                    <div style="width: 44px; height: 44px; border-radius: 50%; border: 3px solid rgba(139,92,246,0.2); border-top-color: #a855f7; animation: spin 1s linear infinite; margin-bottom: 12px;"></div>
-                    <div id="placeholderStepText" style="font-size: 13px; font-weight: 800; color: #fff; margin-bottom: 6px;">云端正在调度算力渲染中...</div>
-                    <div id="placeholderPercentText" style="font-size: 18px; font-weight: 900; color: #c084fc; margin-bottom: 8px;">25%</div>
-                    <div id="placeholderSegsText" style="font-size: 11px; color: #94a3b8; max-width: 280px; line-height: 1.4;"></div>
-                </div>
-
-                <!-- 30 秒成品母带播放器 -->
-                <video id="masterVideoPlayer" controls playsinline style="display: none;"></video>
-            </div>
-        </main>
-
-        <style>
-            @keyframes spin {
-                from { transform: rotate(0deg); }
-                to { transform: rotate(360deg); }
-            }
-        </style>
-
-        <!-- 底部即梦输入卡片与发牌栏 -->
-        <footer class="bottom-console-wrapper">
-            <!-- 顶部操作栏 (统一单行紧凑排布：@正面 + @侧面 + ⋮菜单 + 紧跟[已传缩略图] + 紧跟[＋加号]，绝对顺畅自然) -->
-            <div class="input-top-toolbar" style="display: flex; align-items: center; justify-content: flex-start; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; width: 100%;">
-                <!-- 主角机位区与管理三点 -->
-                <div id="characterToolbarArea" style="display: flex; align-items: center; gap: 8px;">
-                </div>
-
-                <!-- 场景图素材栏 (缩略图排在前面，新增加号紧跟在素材后面) -->
-                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                    <!-- 已传场景图缩略图列表 (纯图片小方块+右上角小数字角标，绝不占多余宽度) -->
-                    <div id="scenePillContainer" style="display: none; align-items: center; gap: 6px;"></div>
-
-                    <!-- ➕ 场景图加号按钮 (排在所有已有素材后面，小巧圆角方块，极度顺眼) -->
-                    <button class="btn-add-scene" onclick="triggerSceneUpload()" title="点击添加场景图" style="width: 32px; height: 32px; border-radius: 8px; background: rgba(14, 165, 233, 0.12); border: 1.5px dashed rgba(56, 189, 248, 0.45); color: #38bdf8; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; flex-shrink: 0;">
-                        <span style="font-size: 16px; font-weight: 800; line-height: 1;">＋</span>
-                    </button>
-                    <input type="file" id="sceneFileInput" accept="image/*" multiple style="display: none;" onchange="handleSceneFilesSelected(event)">
-                </div>
+        <!-- 主提示词卡片 (纯净输入框，杜绝混杂加号) -->
+        <div class="prompt-card" style="width: 100%;">
+            
+            <!-- 提示词工具条 (仅保留右上角全屏查看按钮) -->
+            <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 2px;">
+                <button id="btnExpandPrompt" onclick="openFullscreenPromptModal()" style="display: none; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #cbd5e1; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 6px; cursor: pointer;" title="全屏查看与编辑长提示词">
+                    ⛶ 全屏
+                </button>
             </div>
 
-            <!-- 主提示词卡片 (纯净输入框，杜绝混杂加号) -->
-            <div class="prompt-card" style="width: 100%;">
-                
-                <!-- 提示词工具条 (仅保留右上角全屏查看按钮) -->
-                <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 2px;">
-                    <button id="btnExpandPrompt" onclick="openFullscreenPromptModal()" style="display: none; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #cbd5e1; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 6px; cursor: pointer;" title="全屏查看与编辑长提示词">
-                        ⛶ 全屏
-                    </button>
+            <!-- 场景图与角色占位符高亮输入区 (严格限制手机端最大高度占屏1/3) -->
+            <div class="prompt-input-container">
+                <div class="prompt-backdrop" id="promptBackdrop">
+                    <div class="prompt-highlights" id="promptHighlights"></div>
                 </div>
-
-                <!-- 场景图与角色占位符高亮输入区 (严格限制手机端最大高度占屏1/3) -->
-                <div class="prompt-input-container">
-                    <div class="prompt-backdrop" id="promptBackdrop">
-                        <div class="prompt-highlights" id="promptHighlights"></div>
-                    </div>
-                    <textarea 
-                        class="prompt-textarea" 
-                        id="promptInput" 
-                        placeholder="请粘贴豆包分镜或台词，点击上方头像@主角，点击上方[＋场景图]插入图片..."
-                        oninput="handlePromptInput()"
-                        onscroll="syncScroll()"
-                    ></textarea>
-                </div>
-
-                <!-- 底部操作工具栏 (仅保留右侧生成出片按钮) -->
-                <div class="status-pill-row" style="display: flex; justify-content: flex-end; align-items: center; border-top: none; margin-top: 8px; padding-top: 0;">
-                    <!-- 右侧 发牌生成 按钮 -->
-                    <button class="btn-generate-main" id="btnSubmitMain" onclick="openConfirmDialog()">
-                        <span>生成</span>
-                    </button>
-                </div>
-
+                <textarea 
+                    class="prompt-textarea" 
+                    id="promptInput" 
+                    placeholder="请粘贴豆包分镜或台词，点击上方头像@主角，点击上方[＋场景图]插入图片..."
+                    oninput="handlePromptInput()"
+                    onscroll="syncScroll()"
+                ></textarea>
             </div>
-        </footer>
-    </div>
+
+            <!-- 底部操作工具栏 (仅保留右侧生成出片按钮) -->
+            <div class="status-pill-row" style="display: flex; justify-content: flex-end; align-items: center; border-top: none; margin-top: 8px; padding-top: 0;">
+                <!-- 右侧 发牌生成 按钮 -->
+                <button class="btn-generate-main" id="btnSubmitMain" onclick="openConfirmDialog()">
+                    <span>生成</span>
+                </button>
+            </div>
+
+        </div>
+    </footer>
 
     <!-- ================= 模态弹窗系统 ================= -->
 
@@ -1062,58 +804,6 @@
 
             <button class="btn-generate-main ready" id="btnExecuteReal" onclick="executeSubmitReal()" style="width: 100%; justify-content: center; padding: 11px; font-size: 14px; border-radius: 10px;">
                 确认提交
-            </button>
-        </div>
-    </div>
-
-    <!-- ★ AI文案 (一键根据本地真实知识库出分镜) 弹窗 (极简清爽风格) -->
-    <div class="drawer-modal" id="aiWriterModal" style="z-index: 1500; align-items: center; background: rgba(0,0,0,0.85); backdrop-filter: blur(15px);">
-        <div class="confirm-dialog" style="max-width: 440px; width: 92%; padding: 18px; border: 1.5px solid rgba(168, 85, 247, 0.5); border-radius: 20px; box-shadow: 0 25px 70px rgba(0,0,0,0.95);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px;">
-                <span style="font-size: 15px; font-weight: 800; color: #fff;">AI文案</span>
-                <button class="icon-circle-btn" style="width: 26px; height: 26px; font-size: 11px;" onclick="closeAIWriterModal()">✕</button>
-            </div>
-
-            <!-- 1. 目标业务分类单选 -->
-            <div style="font-size: 11px; font-weight: 700; color: #cbd5e1; margin-bottom: 6px;">1. 选择获客业务靶心：</div>
-            <div style="display: flex; gap: 8px; margin-bottom: 14px;">
-                <div id="aiBtnCatRes" class="param-pill active" onclick="selectAIWriterCategory('RESIDENTIAL_CQ')" style="flex: 1; text-align: center; padding: 8px 4px;">
-                    <div style="font-size: 12px; font-weight: 800;">🏡 重庆自建房</div>
-                    <div style="font-size: 9px; color: #94a3b8; margin-top: 2px;">初装补贴+年租金+阳光棚</div>
-                </div>
-                <div id="aiBtnCatCom" class="param-pill" onclick="selectAIWriterCategory('COMMERCIAL_SC_CQ')" style="flex: 1; text-align: center; padding: 8px 4px;">
-                    <div style="font-size: 12px; font-weight: 800;">🏭 川渝大厂房</div>
-                    <div style="font-size: 9px; color: #94a3b8; margin-top: 2px;">零出资+白天用电打折</div>
-                </div>
-            </div>
-
-            <!-- 2. 视频爆破风格打法单选 (纯风格名称，去除冗余括号) -->
-            <div style="font-size: 11px; font-weight: 700; color: #cbd5e1; margin-bottom: 6px;">2. 选择短视频打法风格：</div>
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 16px;">
-                <div class="ai-style-pill active" id="aiStyle_pain_point" onclick="selectAIWriterStyle('pain_point')" style="padding: 9px 8px; background: rgba(168,85,247,0.2); border: 1.5px solid #a855f7; border-radius: 8px; cursor: pointer; color: #fff; font-size: 12px; font-weight: 700; text-align: center;">
-                    🔥 痛点掀桌型
-                </div>
-                <div class="ai-style-pill" id="aiStyle_case_story" onclick="selectAIWriterStyle('case_story')" style="padding: 9px 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; cursor: pointer; color: #94a3b8; font-size: 12px; font-weight: 700; text-align: center;">
-                    ⚡ 真实案例型
-                </div>
-                <div class="ai-style-pill" id="aiStyle_anti_scam" onclick="selectAIWriterStyle('anti_scam')" style="padding: 9px 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; cursor: pointer; color: #94a3b8; font-size: 12px; font-weight: 700; text-align: center;">
-                    🛡️ 专撕套路型
-                </div>
-                <div class="ai-style-pill" id="aiStyle_value_dry" onclick="selectAIWriterStyle('value_dry')" style="padding: 9px 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; cursor: pointer; color: #94a3b8; font-size: 12px; font-weight: 700; text-align: center;">
-                    💰 干货算大账
-                </div>
-                <div class="ai-style-pill" id="aiStyle_trust_cta" onclick="selectAIWriterStyle('trust_cta')" style="grid-column: 1 / -1; padding: 9px 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; cursor: pointer; color: #94a3b8; font-size: 12px; font-weight: 700; text-align: center;">
-                    🤝 10年老店立信型
-                </div>
-            </div>
-
-            <!-- 生成提示与说明 (无多余冗余链接) -->
-            <div id="aiWriterStatusTip" style="font-size: 11px; color: #10b981; margin-bottom: 14px; line-height: 1.4; text-align: center;">
-                💡 自动调取本地知识库（电价/案例/避坑），严格输出 15秒/80字 纯中文分镜表格。
-            </div>
-
-            <button id="btnExecuteAIWriter" onclick="submitGenerateAIWriterScript()" class="btn-generate-main ready" style="width: 100%; justify-content: center; padding: 11px; font-size: 13px; border-radius: 10px;">
-                🚀 一键生成并填入输入框
             </button>
         </div>
     </div>
@@ -1357,7 +1047,6 @@
             initRoleState();
             renderScenePills();
             syncHighlights();
-            initChatInterface();
             await checkGlobalLLMStatus();
             await restoreActiveRenderJobs();
             await loadLatestMasterVideo();
@@ -2279,356 +1968,6 @@
             const pureWords = text.replace(/[，。！？、；：“”‘’（）《》\s\[\]]/g, "").length;
             const btn = document.getElementById("btnSubmitMain");
             btn.classList.toggle("ready", pureWords > 5);
-        }
-
-        // ================= ★ 封成电器·AI金牌编剧 (一键根据本地知识库与军规生成15秒80字分镜) =================
-        let currentAIWriterCategory = "RESIDENTIAL_CQ";
-        let currentAIWriterStyle = "pain_point";
-
-        function openAIWriterModal() {
-            document.getElementById("aiWriterModal").classList.add("active");
-        }
-        function closeAIWriterModal() {
-            document.getElementById("aiWriterModal").classList.remove("active");
-        }
-
-        function selectAIWriterCategory(cat) {
-            currentAIWriterCategory = cat;
-            document.getElementById("aiBtnCatRes").classList.toggle("active", cat === "RESIDENTIAL_CQ");
-            document.getElementById("aiBtnCatCom").classList.toggle("active", cat === "COMMERCIAL_SC_CQ");
-        }
-
-        function selectAIWriterStyle(style) {
-            currentAIWriterStyle = style;
-            document.querySelectorAll(".ai-style-pill").forEach(el => {
-                el.style.background = "rgba(255,255,255,0.04)";
-                el.style.borderColor = "rgba(255,255,255,0.12)";
-                el.style.color = "#94a3b8";
-            });
-            const activeEl = document.getElementById(`aiStyle_${style}`);
-            if (activeEl) {
-                activeEl.style.background = "rgba(168,85,247,0.2)";
-                activeEl.style.borderColor = "#a855f7";
-                activeEl.style.color = "#fff";
-            }
-        }
-
-        async function submitGenerateAIWriterScript() {
-            const btn = document.getElementById("btnExecuteAIWriter");
-            const tip = document.getElementById("aiWriterStatusTip");
-            btn.disabled = true;
-            btn.innerText = "⏳ 正在检索本地知识库并调用DeepSeek创作中...";
-            tip.innerText = "正在调取珞璜10年老店背书、国网分时电价与真实案例，卡死15秒总长...";
-            tip.style.color = "#fbbf24";
-
-            try {
-                const res = await fetch("/api/v1/scripts/generate-quick-ai-script", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        category: currentAIWriterCategory,
-                        style: currentAIWriterStyle
-                    })
-                });
-
-                const data = await res.json();
-                if (res.ok && data.success && data.script_table && data.script_table.trim().length > 0) {
-                    const textarea = document.getElementById("promptInput");
-                    textarea.value = data.script_table;
-                    closeAIWriterModal();
-                    handlePromptInput();
-                    alert("🎉 15秒纯中文实战分镜已生成并填入输入框！请确认无误后点击右下角【生成】出片！");
-                } else if (res.ok && data.success && (!data.script_table || data.script_table.trim().length === 0)) {
-                    alert("大模型返回的内容为空，请稍后重试或更换打法风格！");
-                    tip.innerText = "⚠️ 大模型返回空内容，请重试";
-                    tip.style.color = "#fbbf24";
-                } else {
-                    const errDetail = data.detail || (typeof data === 'string' ? data : JSON.stringify(data));
-                    alert("生成失败原因:\n" + errDetail);
-                    tip.innerText = "❌ 生成失败: " + errDetail;
-                    tip.style.color = "#ef4444";
-                }
-            } catch(e) {
-                alert("请求通信异常:\n" + e);
-                tip.innerText = "❌ 通信异常: " + e;
-                tip.style.color = "#ef4444";
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "🚀 一键生成并填入输入框";
-            }
-        }
-
-        // ================= ★ 顶部标签切换系统 (文案 / 出片) =================
-        let currentMainTab = "produce";
-
-        function switchMainTab(tab) {
-            currentMainTab = tab;
-            const navScript = document.getElementById("navTabScript");
-            const navProduce = document.getElementById("navTabProduce");
-            const viewScript = document.getElementById("viewScript");
-            const viewProduce = document.getElementById("viewProduce");
-
-            if (!navScript || !navProduce || !viewScript || !viewProduce) return;
-
-            if (tab === "script") {
-                navScript.classList.add("active");
-                navProduce.classList.remove("active");
-                viewScript.style.display = "flex";
-                viewProduce.style.display = "none";
-                setTimeout(() => {
-                    const chatInput = document.getElementById("chatUserInput");
-                    if (chatInput) chatInput.focus();
-                    scrollChatToBottom();
-                }, 60);
-            } else {
-                navProduce.classList.add("active");
-                navScript.classList.remove("active");
-                viewProduce.style.display = "flex";
-                viewScript.style.display = "none";
-                setTimeout(() => {
-                    handlePromptInput();
-                }, 60);
-            }
-        }
-
-        // ================= ★ 极简纯净原生浮动 Toast 提示组件 =================
-        function showAppToast(msg, duration = 2800) {
-            let toast = document.getElementById("appGlobalToast");
-            if (!toast) {
-                toast = document.createElement("div");
-                toast.id = "appGlobalToast";
-                toast.style.cssText = "position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(18, 18, 26, 0.96); border: 1.5px solid rgba(168, 85, 247, 0.7); color: #fff; padding: 10px 22px; border-radius: 9999px; font-size: 13px; font-weight: 700; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), 0 0 20px rgba(168, 85, 247, 0.35); z-index: 9999; pointer-events: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); opacity: 0; backdrop-filter: blur(15px); white-space: nowrap;";
-                document.body.appendChild(toast);
-            }
-            toast.innerText = msg;
-            toast.style.opacity = "1";
-            toast.style.transform = "translateX(-50%) translateY(0)";
-            if (window._toastTimer) clearTimeout(window._toastTimer);
-            window._toastTimer = setTimeout(() => {
-                toast.style.opacity = "0";
-                toast.style.transform = "translateX(-50%) translateY(20px)";
-            }, duration);
-        }
-
-        // ================= ★ 文案大模型多轮自由对话引擎 =================
-        let chatConversation = []; // [{ role: 'user' | 'assistant', content: string }]
-        let isChatWaiting = false;
-
-        function initChatInterface() {
-            renderChatMessages();
-        }
-
-        function scrollChatToBottom() {
-            const container = document.getElementById("chatMessagesContainer");
-            if (container) {
-                container.scrollTop = container.scrollHeight;
-            }
-        }
-
-        function formatAssistantContent(rawText, index) {
-            let clean = rawText.replace(/```(?:tsv|text|markdown)?/gi, '').replace(/```/g, '').trim();
-            let lines = clean.split('\n').map(l => l.trim()).filter(Boolean);
-
-            // 检查是否包含制表符或标准时间段 TSV
-            let tsvLines = lines.filter(l => l.includes('\t'));
-            if (tsvLines.length >= 2) {
-                let headers = tsvLines[0].split('\t').map(h => h.trim());
-                let rows = tsvLines.slice(1).map(l => l.split('\t').map(c => c.trim()));
-
-                let tableHtml = `
-                    <div class="chat-table-wrapper">
-                        <table class="chat-tsv-table">
-                            <thead>
-                                <tr>${headers.map(h => `<th>${escapeHtml(h)}</th>`).join('')}</tr>
-                            </thead>
-                            <tbody>
-                                ${rows.map(r => `<tr>${r.map(c => `<td>${escapeHtml(c)}</td>`).join('')}</tr>`).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-                return { html: tableHtml, isTable: true, raw: clean };
-            }
-
-            // 普通大白话回复
-            return {
-                html: `<div style="white-space: pre-wrap;">${escapeHtml(clean)}</div>`,
-                isTable: false,
-                raw: clean
-            };
-        }
-
-        function renderChatMessages() {
-            const container = document.getElementById("chatMessagesContainer");
-            if (!container) return;
-
-            if (chatConversation.length === 0) {
-                container.innerHTML = `
-                    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: rgba(255,255,255,0.22); text-align: center; padding: 40px 20px;">
-                        <div style="font-size: 32px; margin-bottom: 8px; opacity: 0.35;">✍️</div>
-                        <div style="font-size: 13px; font-weight: 600;">直接在下方输入文案想法，对话即可生成与微调分镜</div>
-                    </div>
-                `;
-                scrollChatToBottom();
-                return;
-            }
-
-            let html = "";
-            chatConversation.forEach((msg, index) => {
-                if (msg.role === "user") {
-                    html += `
-                        <div class="chat-msg-row user">
-                            <div class="chat-bubble-user">${escapeHtml(msg.content)}</div>
-                        </div>
-                    `;
-                } else {
-                    const parsed = formatAssistantContent(msg.content, index);
-                    html += `
-                        <div class="chat-msg-row assistant">
-                            <div class="chat-bubble-assistant">
-                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                                    <span style="font-size: 12px; font-weight: 800; color: #c084fc;">🤖 AI编剧</span>
-                                </div>
-                                <div class="chat-content-body">${parsed.html}</div>
-                                <div class="chat-actions-row">
-                                    <button class="btn-chat-action primary" onclick="applyScriptToProduceByIndex(${index})">
-                                        <span>🚀 带入分镜并去出片</span>
-                                    </button>
-                                    <button class="btn-chat-action" onclick="copyChatContentByIndex(${index})">
-                                        <span>📋 复制文本</span>
-                                    </button>
-                                    <button class="btn-chat-action" onclick="prepareChatRefine(${index})">
-                                        <span>✏️ 继续微调</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-            });
-
-            if (isChatWaiting) {
-                html += `
-                    <div class="chat-msg-row assistant">
-                        <div class="chat-bubble-assistant" style="display: flex; align-items: center; gap: 8px; padding: 10px 14px;">
-                            <div style="width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(168,85,247,0.3); border-top-color: #a855f7; animation: spin 1s linear infinite;"></div>
-                            <span style="font-size: 12px; color: #c084fc; font-weight: 700;">正在调取知识库数据并构思15秒实战分镜...</span>
-                        </div>
-                    </div>
-                `;
-            }
-
-            container.innerHTML = html;
-            scrollChatToBottom();
-        }
-
-        async function sendChatMessage(customText) {
-            if (isChatWaiting) return;
-            const input = document.getElementById("chatUserInput");
-            const text = (customText !== undefined ? customText : (input ? input.value : "")).trim();
-            if (!text) return;
-
-            if (input && customText === undefined) {
-                input.value = "";
-                input.style.height = "auto";
-            }
-
-            // 加入用户提问
-            chatConversation.push({ role: "user", content: text });
-            isChatWaiting = true;
-            renderChatMessages();
-
-            const btn = document.getElementById("btnSendChat");
-            if (btn) btn.disabled = true;
-
-            try {
-                const res = await fetch("/api/v1/scripts/chat", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        messages: chatConversation
-                    })
-                });
-
-                const data = await res.json();
-                if (res.ok && data.success && data.reply && data.reply.trim().length > 0) {
-                    chatConversation.push({ role: "assistant", content: data.reply.trim() });
-                } else {
-                    const errDetail = data.detail || ((data && data.reply === "") ? "大模型返回内容为空（可能触发Token上限截断），请重试！" : (typeof data === 'string' ? data : JSON.stringify(data)));
-                    chatConversation.push({ role: "assistant", content: `❌ 请求失败: ${errDetail}` });
-                }
-            } catch (err) {
-                chatConversation.push({ role: "assistant", content: `❌ 网络异常: ${err}` });
-            } finally {
-                isChatWaiting = false;
-                if (btn) btn.disabled = false;
-                renderChatMessages();
-            }
-        }
-
-        function quickSendChat(promptText) {
-            sendChatMessage(promptText);
-        }
-
-        function handleChatKeydown(event) {
-            if (event.key === "Enter" && !event.shiftKey) {
-                event.preventDefault();
-                sendChatMessage();
-            }
-        }
-
-        function clearChatHistory() {
-            if (chatConversation.length > 0 && !confirm("确定要清空当前的文案对话记录吗？")) {
-                return;
-            }
-            chatConversation = [];
-            isChatWaiting = false;
-            renderChatMessages();
-            showAppToast("🧹 对话历史已重置");
-        }
-
-        function applyScriptToProduceByIndex(index) {
-            const msg = chatConversation[index];
-            if (!msg || !msg.content) return;
-
-            let clean = msg.content.replace(/```(?:tsv|text|markdown)?/gi, '').replace(/```/g, '').trim();
-
-            // 如果内容中混杂有前言/后语，提取表格行
-            const lines = clean.split('\n');
-            const tableLines = lines.filter(l => l.includes('\t') || l.includes('时间') || /\d+\s*[-~至到]\s*\d+\s*(?:s|秒)?/.test(l));
-            if (tableLines.length >= 2) {
-                clean = tableLines.join('\n');
-            }
-
-            const textarea = document.getElementById("promptInput");
-            if (textarea) {
-                textarea.value = clean;
-                handlePromptInput();
-            }
-
-            // 切换到【出片】标签
-            switchMainTab("produce");
-            showAppToast("🎉 分镜已成功装载到出片控制台，确认后点击【生成】即可出片！", 3200);
-        }
-
-        function copyChatContentByIndex(index) {
-            const msg = chatConversation[index];
-            if (!msg || !msg.content) return;
-            let clean = msg.content.replace(/```(?:tsv|text|markdown)?/gi, '').replace(/```/g, '').trim();
-            navigator.clipboard.writeText(clean).then(() => {
-                showAppToast("📋 文案已成功复制到剪贴板！");
-            }).catch(() => {
-                alert("已选中文本，请手动复制");
-            });
-        }
-
-        function prepareChatRefine(index) {
-            const input = document.getElementById("chatUserInput");
-            if (input) {
-                input.value = "请在上述分镜的基础上做如下优化微调：";
-                input.focus();
-                input.setSelectionRange(input.value.length, input.value.length);
-            }
         }
 
         function clearInput() {
